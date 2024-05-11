@@ -21,7 +21,7 @@ enum TokenType {
   SCLN, COMMA, QUE, COLON, ASSIGN, // ';', ',', '?', ':', '='
   ADDORSIGN, SUBORSIGN, // + & -
   INPUTBUFFERAPPEND, ENDINPUTBUFFERAPPEND,
-  NONE, END_OF_FILE, COMMENT  // ��l��
+  NONE, END_OF_FILE, COMMENT  // 嚙踝蕭l嚙踝蕭
 };
 
 struct Token {
@@ -50,7 +50,7 @@ struct Declarators {
 };
 
 bool VariableCompare( Variable a, Variable b ) {
-  return a.name > b.name; // ���ǱƦC
+  return a.name > b.name; // 降序排列
 } // VariableCompare()
 
 bool FunctionCompare( Function a, Function b ) {
@@ -235,7 +235,7 @@ Token Scanner::GetToken() {
       GetID();
       mToken.tokenType = ID;
     } // end if
-    else if ( mCur >= '0' && mCur <= '9' ) {
+    else if ( ( mCur >= '0' && mCur <= '9' ) || mCur == '.' ) {
       GetNumber();
       mToken.tokenType = CONSTANT;
     } // end if
@@ -265,6 +265,7 @@ Token Scanner::GetToken() {
     else {
       // printf( "char undefined! : %c", mCur );
       mToken.tokenString = mToken.tokenString + mCur;
+      mToken.lineNum = mCurLine;
       string errorMsg = "unrecognized token with first char : '" ;
       errorMsg = errorMsg + mCur + "'00";
       if ( DEBUG ) cout << errorMsg << endl;
@@ -306,6 +307,8 @@ void Scanner::GetID() {
 void Scanner::GetNumber() {
   mToken.tokenString += mCur;
   bool end = false;
+  bool hasPoint = false;
+  if ( mCur == '.' ) hasPoint = true;
   int checkInput = GetNextChar();
       
   while ( ( ! end ) && ( ( mCur >= '0' && mCur <= '9' ) || mCur == '.' )  ) {
@@ -313,12 +316,16 @@ void Scanner::GetNumber() {
       end = true;
     } // end if
 
+    if ( mCur == '.' && hasPoint ) end = true;
+
     if ( ! end ) {
       mToken.tokenString += mCur;
+      if ( mCur == '.' ) hasPoint = true;
       checkInput = GetNextChar();
     } // end if
 
     
+
   } // while()
    
 } // Scanner::GetNumber()
@@ -680,7 +687,7 @@ void Scanner::PrintAllTokens() {
                   "SCLN", "COMMA", "QUE", "COLON", "ASSIGN", // ';', ',', '?', ':', '='
                   "ADDORSIGN", "SUBORSIGN", // + & -
                   "INPUTBUFFERAPPEND", "ENDINPUTBUFFERAPPEND",
-                  "NONE", "END_OF_FILE", "COMMENT"};  // ��l��
+                  "NONE", "END_OF_FILE", "COMMENT"};  // 嚙踝蕭l嚙踝蕭
       
   for ( int i = 0 ; i < mTokenSet.size() ; i++ ) {
     cout << "Line " << mTokenSet[i].lineNum << ": " << mTokenSet[i].tokenString << 
@@ -736,6 +743,12 @@ void Scanner::CheckReservedWords() {
   else if ( mToken.tokenString == "EndInputBufferAppend" ) {
     mToken.tokenType = ENDINPUTBUFFERAPPEND;
   } // end if
+  else if ( mToken.tokenString == "true" ) {
+    mToken.tokenType = CONSTANT;
+  } // end if
+  else if ( mToken.tokenString == "false" ) {
+    mToken.tokenType = CONSTANT;
+  } // end if
 
   return;
 } // Scanner::CheckReservedWords()
@@ -766,7 +779,7 @@ class Parser {
   int mThreshold;
   bool mLastStatementIf;
   bool mJustPeek;
-  Token mCurToken;
+  Token mToken;
   vector<Variable> mVariableList;
   vector<Function> mFunctionList;
   vector<Declarators> mDeclaratorsList;
@@ -779,6 +792,7 @@ class Parser {
   
   bool IsDefOrStatement() ;
   void UserInput() ;
+  void GetFirstToken() ;
   void Definition( bool isBLP ) ;
   void TypeSpecifier() ;
   void FunctionDefinitionOrDeclarators( string type, string name, bool isBLP ) ;
@@ -838,12 +852,69 @@ class Parser {
 }; // Parser
 
 void Parser::Init() {
+  bool end = false;
   mVariableList.clear();
   mFunctionList.clear();
   mDeclaratorsList.clear();
   mScanner.mCurLine = 1;
-  mCurToken = mScanner.GetToken();
+  while ( ! end ) {
+    try {
+      mScanner.GetToken();
+      end = true;
+      mScanner.mTokenList.clear();
+      if ( mScanner.mToken.lineNum == 0 ) {
+        mScanner.mToken.lineNum = 1;
+        mScanner.mCurLine = 1;
+      } // end if
+
+      mToken = mScanner.mToken;
+      mScanner.mTokenList.push_back( mToken );
+    } catch ( string msg ) {
+      msg = msg.substr( 0, msg.length() - 2 );
+      if ( mScanner.mToken.lineNum == 0 ) {
+        mScanner.mToken.lineNum = 1;
+        mScanner.mCurLine = 1;
+      } // end if
+
+      cout << "Line " << mScanner.mToken.lineNum << " : " << msg << endl;
+      mScanner.LineInit();
+      mScanner.SkipErrorLine();
+      mScanner.mCurLine++;
+      mScanner.GetNextChar();
+    } // catch
+  } // end while
 } // Parser::Init()
+
+void Parser::GetFirstToken() {
+  bool end = false;
+  mScanner.LineInit();
+
+  while ( ! end ) {
+    try {
+      mScanner.GetToken();
+      end = true;
+      mScanner.mTokenList.clear();
+      if ( mScanner.mToken.lineNum == 0 ) {
+        mScanner.mToken.lineNum = 1;
+        mScanner.mCurLine = 1;
+      } // end if
+
+      mToken = mScanner.mToken;
+      mScanner.mTokenList.push_back( mToken );
+    } catch ( string msg ) {
+      msg = msg.substr( 0, msg.length() - 2 );
+      if ( mScanner.mToken.lineNum == 0 ) {
+        mScanner.mToken.lineNum = 1;
+      } // end if
+
+      cout << "Line " << mScanner.mToken.lineNum << " : " << msg << endl;
+      mScanner.LineInit();
+      mScanner.SkipErrorLine();
+      mScanner.mCurLine++;
+      mScanner.GetNextChar();
+    } // catch
+  } // end while
+} // Parser::GetFirstToken()
 
 bool Parser::IsUserInput() {
   mDeclaratorsList.clear();
@@ -861,61 +932,51 @@ bool Parser::IsUserInput() {
     string num = msg.substr( msg.length() - 2, 2 );
     if ( num == "79" ) cout << "Line " << 
                             mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum << " : ";
-    else cout << "Line " << mCurToken.lineNum << " : ";
+    else cout << "Line " << mScanner.mTokenList[mScanner.mTokenList.size() - 1].lineNum << " : ";
 
     if ( ! DEBUG ) msg = msg.substr( 0, msg.length() - 2 );
     cout << msg << endl;
     mRegion = 0;
     RemoveVariables();
 
+    printf( "> " );
+
     if ( num == "79" ) {
-      if ( mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum == mCurToken.lineNum ) {
-        mScanner.mTokenList.clear();
+      if ( mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum == mToken.lineNum ) {
         mScanner.SkipErrorLine();
-        mScanner.LineInit();
-        mCurToken = mScanner.GetToken();
+        GetFirstToken();
       } // end if
       else { // hold the token
-        mCurToken.lineNum = mCurToken.lineNum - 
+        mToken.lineNum = mToken.lineNum - 
                             mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum;
-        mScanner.mCurLine = mCurToken.lineNum;
+        mScanner.mToken.lineNum = mScanner.mCurLine = mToken.lineNum;
         mScanner.mTokenList.clear();
-        mScanner.mTokenList.push_back( mCurToken );
+        mScanner.mTokenList.push_back( mToken );
       } // end else
 
       return true;
     } // end if
 
-    mScanner.mTokenList.clear();
     mScanner.SkipErrorLine();
-    mScanner.LineInit();
-    mCurToken = mScanner.GetToken();
-    return true;
-    
+    GetFirstToken();
     return true;
   } // catch
 
   if ( mJustPeek ) { // hold the token
     mScanner.mTokenList.clear();
-    mCurToken.tokenString = mScanner.mToken.tokenString;
-    mCurToken.tokenType = mScanner.mToken.tokenType;
-    mCurToken.lineNum = mScanner.mToken.lineNum - mCurToken.lineNum + 1;
-    mScanner.mCurLine = mCurToken.lineNum;
-    mScanner.mTokenList.push_back( mCurToken );
+    mToken.tokenString = mScanner.mToken.tokenString;
+    mToken.tokenType = mScanner.mToken.tokenType;
+    mToken.lineNum = mScanner.mToken.lineNum - mToken.lineNum;
+    mScanner.mCurLine = mToken.lineNum;
+    mScanner.mTokenList.push_back( mToken );
     mRegion = 0;
     RemoveVariables();
+    printf( "> " );
     return true;
   } // end if
 
-  mScanner.LineInit();
-  mCurToken = mScanner.GetToken();
-  mScanner.mTokenList.clear();
-  if ( mCurToken.lineNum == 0 ) {
-    mCurToken.lineNum = 1;
-    mScanner.mCurLine = 1;
-  } // end if
-
-  mScanner.mTokenList.push_back( mCurToken );
+  printf( "> " );
+  GetFirstToken();
   mRegion = 0;
   RemoveVariables();
     
@@ -930,38 +991,38 @@ void Parser::UserInput() {
 
   
   
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     throw ( "EOF" );
   } // end if
-  else if ( mCurToken.tokenType == VOID || 
-            mCurToken.tokenType == INT || 
-            mCurToken.tokenType == CHAR || 
-            mCurToken.tokenType == FLOAT || 
-            mCurToken.tokenType == STRING || 
-            mCurToken.tokenType == BOOL ) { // the first type of definition
+  else if ( mToken.tokenType == VOID || 
+            mToken.tokenType == INT || 
+            mToken.tokenType == CHAR || 
+            mToken.tokenType == FLOAT || 
+            mToken.tokenType == STRING || 
+            mToken.tokenType == BOOL ) { // the first type of definition
     Definition( false );
   } // end if
-  else if ( mCurToken.tokenType == ID ||
-            mCurToken.tokenType == PP ||
-            mCurToken.tokenType == MM ||
-            mCurToken.tokenType == ADD ||
-            mCurToken.tokenType == SUB ||
-            mCurToken.tokenType == BITNOT ||
-            mCurToken.tokenType == CONSTANT ||
-            mCurToken.tokenType == RETURN ||
-            mCurToken.tokenType == BLP ||
-            mCurToken.tokenType == IF || 
-            mCurToken.tokenType == WHILE ||
-            mCurToken.tokenType == DO ||
-            mCurToken.tokenType == SCLN ||
-            mCurToken.tokenType == LP ||
-            mCurToken.tokenType == CIN ||
-            mCurToken.tokenType == COUT ) {
+  else if ( mToken.tokenType == ID ||
+            mToken.tokenType == PP ||
+            mToken.tokenType == MM ||
+            mToken.tokenType == ADD ||
+            mToken.tokenType == SUB ||
+            mToken.tokenType == BITNOT ||
+            mToken.tokenType == CONSTANT ||
+            mToken.tokenType == RETURN ||
+            mToken.tokenType == BLP ||
+            mToken.tokenType == IF || 
+            mToken.tokenType == WHILE ||
+            mToken.tokenType == DO ||
+            mToken.tokenType == SCLN ||
+            mToken.tokenType == LP ||
+            mToken.tokenType == CIN ||
+            mToken.tokenType == COUT ) {
     Statement();
     StatementOp();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'01";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'01";
     throw ( errorMsg );
   } // end else
 
@@ -970,48 +1031,48 @@ void Parser::UserInput() {
 
 void Parser::Definition( bool isBLP ) {
   if ( DEBUG ) cout << "Definition" << endl;
-  if ( mCurToken.tokenType == VOID ) { // should be a function
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == VOID ) { // should be a function
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    else if ( mCurToken.tokenType == ID ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == LP ) FunctionDefinitionWithoutID(); 
+    else if ( mToken.tokenType == ID ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == LP ) FunctionDefinitionWithoutID(); 
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'02";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'02";
         throw ( errorMsg );
       } // end else
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'02";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'02";
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == INT || 
-            mCurToken.tokenType == CHAR || 
-            mCurToken.tokenType == FLOAT || 
-            mCurToken.tokenType == STRING || 
-            mCurToken.tokenType == BOOL ) {
+  else if ( mToken.tokenType == INT || 
+            mToken.tokenType == CHAR || 
+            mToken.tokenType == FLOAT || 
+            mToken.tokenType == STRING || 
+            mToken.tokenType == BOOL ) {
               
-    string type = mCurToken.tokenString;
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    string type = mToken.tokenString;
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    else if ( mCurToken.tokenType == ID ) {
-      FunctionDefinitionOrDeclarators( type, mCurToken.tokenString, isBLP ); 
+    else if ( mToken.tokenType == ID ) {
+      FunctionDefinitionOrDeclarators( type, mToken.tokenString, isBLP ); 
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'03";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'03";
       throw ( errorMsg );
     } // end else
     
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'04";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'04";
     throw ( errorMsg );
   } // end else
 
@@ -1020,14 +1081,14 @@ void Parser::Definition( bool isBLP ) {
 
 void Parser::TypeSpecifier() {
   if ( DEBUG ) cout << "TypeSpecifier" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE )  {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE )  {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType != INT && mCurToken.tokenType != CHAR && mCurToken.tokenType != FLOAT &&
-            mCurToken.tokenType != STRING && mCurToken.tokenType != BOOL ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'05";
+  else if ( mToken.tokenType != INT && mToken.tokenType != CHAR && mToken.tokenType != FLOAT &&
+            mToken.tokenType != STRING && mToken.tokenType != BOOL ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'05";
     throw ( errorMsg );
   } // end if
   
@@ -1036,22 +1097,22 @@ void Parser::TypeSpecifier() {
 
 void Parser::FunctionDefinitionOrDeclarators( string type, string name, bool isBLP ) {
   if ( DEBUG ) cout << "FunctionDefinitionOrDeclarators" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType == LP ) {
+  else if ( mToken.tokenType == LP ) {
     
     // record the type and name of the function
     
     FunctionDefinitionWithoutID();
   } // end if
-  else if ( mCurToken.tokenType == MLP || mCurToken.tokenType == SCLN || mCurToken.tokenType == COMMA ) {
+  else if ( mToken.tokenType == MLP || mToken.tokenType == SCLN || mToken.tokenType == COMMA ) {
     RestOfDeclarators( type, name, isBLP );
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'06";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'06";
     throw ( errorMsg );
   } // end else
 
@@ -1065,74 +1126,74 @@ void Parser::RestOfDeclarators( string variableType, string variableName, bool i
   temp.num = 1;
   mDeclaratorsList.push_back( temp );
   if ( DEBUG ) cout << "RestOfDeclarators" << endl;
-  if ( mCurToken.tokenType == MLP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == MLP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    else if ( mCurToken.tokenType == CONSTANT ) {
-      string length = mCurToken.tokenString;
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    else if ( mToken.tokenType == CONSTANT ) {
+      string length = mToken.tokenString;
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      else if ( mCurToken.tokenType != MRP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'07";
+      else if ( mToken.tokenType != MRP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'07";
         throw ( errorMsg );
       } // end if
-      else if ( mCurToken.tokenType == MRP ) {
-        mCurToken = mScanner.GetToken();
+      else if ( mToken.tokenType == MRP ) {
+        mToken = mScanner.GetToken();
         mDeclaratorsList[0].num = StringToInt( length );
       } // end if
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'08";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'08";
       throw ( errorMsg );
     } // end else
   } // end if
 
-  if ( mCurToken.tokenType == COMMA ) {
-    while ( mCurToken.tokenType == COMMA ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == COMMA ) {
+    while ( mToken.tokenType == COMMA ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      else if ( mCurToken.tokenType == ID ) { // check is there any '[' CONSTANT ']' pattern next
-        temp.name = mCurToken.tokenString;
-        mCurToken = mScanner.GetToken();
-        if ( mCurToken.tokenType == END_OF_FILE ) {
+      else if ( mToken.tokenType == ID ) { // check is there any '[' CONSTANT ']' pattern next
+        temp.name = mToken.tokenString;
+        mToken = mScanner.GetToken();
+        if ( mToken.tokenType == END_OF_FILE ) {
           string error = "EOF";
           throw ( error );
         } // end if
-        else if ( mCurToken.tokenType == MLP ) { // check '['
-          mCurToken = mScanner.GetToken();
-          if ( mCurToken.tokenType == END_OF_FILE ) {
+        else if ( mToken.tokenType == MLP ) { // check '['
+          mToken = mScanner.GetToken();
+          if ( mToken.tokenType == END_OF_FILE ) {
             string error = "EOF";
             throw ( error );
           } // end if
-          else if ( mCurToken.tokenType == CONSTANT ) {  // check CONSTANT
-            string length = mCurToken.tokenString;
-            mCurToken = mScanner.GetToken();
-            if ( mCurToken.tokenType == END_OF_FILE ) {
+          else if ( mToken.tokenType == CONSTANT ) {  // check CONSTANT
+            string length = mToken.tokenString;
+            mToken = mScanner.GetToken();
+            if ( mToken.tokenType == END_OF_FILE ) {
               string error = "EOF";
               throw ( error );
             } // end if
-            else if ( mCurToken.tokenType != MRP ) {  // check ']'
-              string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'09";
+            else if ( mToken.tokenType != MRP ) {  // check ']'
+              string errorMsg = "unexpected token : '" + mToken.tokenString + "'09";
               throw ( errorMsg );
             } // end if
             else { // the pattern is correct
               temp.num = StringToInt( length );
               temp.type = variableType;
               mDeclaratorsList.push_back( temp );
-              mCurToken = mScanner.GetToken();
+              mToken = mScanner.GetToken();
             } // end else
           } // end if
           else {
-            string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'10";
+            string errorMsg = "unexpected token : '" + mToken.tokenString + "'10";
             throw ( errorMsg );
           } // end else
         } // end if
@@ -1143,18 +1204,18 @@ void Parser::RestOfDeclarators( string variableType, string variableName, bool i
         } // end else
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'11";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'11";
         throw ( errorMsg );
       } // end else
     } // end while
   } // end if
   
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType != SCLN ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'12";
+  else if ( mToken.tokenType != SCLN ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'12";
     throw ( errorMsg );
   } // end if
   
@@ -1167,34 +1228,34 @@ void Parser::FunctionDefinitionWithoutID() {
   if ( DEBUG ) cout << "FunctionDefinitionWithoutID" << endl;
   mRegion++;
   mThreshold = mRegion;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType == INT || 
-            mCurToken.tokenType == CHAR || 
-            mCurToken.tokenType == FLOAT || 
-            mCurToken.tokenType == STRING || 
-            mCurToken.tokenType == BOOL ) {
+  else if ( mToken.tokenType == INT || 
+            mToken.tokenType == CHAR || 
+            mToken.tokenType == FLOAT || 
+            mToken.tokenType == STRING || 
+            mToken.tokenType == BOOL ) {
     FormalParameterList();
   } // end if
 
-  if ( mCurToken.tokenType == RP ) mCurToken = mScanner.GetToken();
+  if ( mToken.tokenType == RP ) mToken = mScanner.GetToken();
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'14";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'14";
     throw ( errorMsg );
   } // end else
 
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType == BLP ) {
+  else if ( mToken.tokenType == BLP ) {
     CompoundStatement();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'14";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'14";
     throw ( errorMsg );
   } // end else
   
@@ -1211,48 +1272,48 @@ void Parser::FormalParameterList() {
   if ( DEBUG ) cout << "FormalParameterList" << endl;
 
   Declarators temp;
-  temp.type = mCurToken.tokenString;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  temp.type = mToken.tokenString;
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
   
   
-  if ( mCurToken.tokenType == BITAND ) { // check for '&'
-    mCurToken = mScanner.GetToken();
+  if ( mToken.tokenType == BITAND ) { // check for '&'
+    mToken = mScanner.GetToken();
   } // end if
   
-  if ( mCurToken.tokenType != ID ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'15";
+  if ( mToken.tokenType != ID ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'15";
     throw ( errorMsg );
   } // end if
   else {
-    temp.name = mCurToken.tokenString;
+    temp.name = mToken.tokenString;
   } // end else
 
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == MLP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == MLP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    else if ( mCurToken.tokenType == CONSTANT ) {
-      temp.num = StringToInt( mCurToken.tokenString );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    else if ( mToken.tokenType == CONSTANT ) {
+      temp.num = StringToInt( mToken.tokenString );
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      else if ( mCurToken.tokenType != MRP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'16";
+      else if ( mToken.tokenType != MRP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'16";
         throw ( errorMsg );
       } // end if
-      else mCurToken = mScanner.GetToken();
+      else mToken = mScanner.GetToken();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'17";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'17";
       throw ( errorMsg );
     } // end else
   } // end if
@@ -1262,69 +1323,69 @@ void Parser::FormalParameterList() {
 
   mDeclaratorsList.push_back( temp );
 
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
   
-  while ( mCurToken.tokenType == COMMA ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  while ( mToken.tokenType == COMMA ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType != INT && 
-         mCurToken.tokenType != CHAR && 
-         mCurToken.tokenType != FLOAT && 
-         mCurToken.tokenType != STRING && 
-         mCurToken.tokenType != BOOL ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'18";
+    if ( mToken.tokenType != INT && 
+         mToken.tokenType != CHAR && 
+         mToken.tokenType != FLOAT && 
+         mToken.tokenType != STRING && 
+         mToken.tokenType != BOOL ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'18";
       throw ( errorMsg );
     } // end if
     else {
-      temp.type = mCurToken.tokenString;
+      temp.type = mToken.tokenString;
     } // end else
            
-    mCurToken = mScanner.GetToken();
+    mToken = mScanner.GetToken();
   
-    if ( mCurToken.tokenType == BITAND ) { // check for '&' (optional)
-      mCurToken = mScanner.GetToken();
+    if ( mToken.tokenType == BITAND ) { // check for '&' (optional)
+      mToken = mScanner.GetToken();
     } // end if
       
       
       
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    else if ( mCurToken.tokenType == ID ) { // check is there any '[' CONSTANT ']' pattern next
-      temp.name = mCurToken.tokenString;
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    else if ( mToken.tokenType == ID ) { // check is there any '[' CONSTANT ']' pattern next
+      temp.name = mToken.tokenString;
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      else if ( mCurToken.tokenType == MLP ) { // check '['
-        mCurToken = mScanner.GetToken();
-        if ( mCurToken.tokenType == END_OF_FILE ) {
+      else if ( mToken.tokenType == MLP ) { // check '['
+        mToken = mScanner.GetToken();
+        if ( mToken.tokenType == END_OF_FILE ) {
           string error = "EOF";
           throw ( error );
         } // end if
-        else if ( mCurToken.tokenType == CONSTANT ) {  // check CONSTANT
-          temp.num = StringToInt( mCurToken.tokenString );
-          mCurToken = mScanner.GetToken();
-          if ( mCurToken.tokenType == END_OF_FILE ) {
+        else if ( mToken.tokenType == CONSTANT ) {  // check CONSTANT
+          temp.num = StringToInt( mToken.tokenString );
+          mToken = mScanner.GetToken();
+          if ( mToken.tokenType == END_OF_FILE ) {
             string error = "EOF";
             throw ( error );
           } // end if
-          else if ( mCurToken.tokenType != MRP ) {  // check ']'
-            string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'19";
+          else if ( mToken.tokenType != MRP ) {  // check ']'
+            string errorMsg = "unexpected token : '" + mToken.tokenString + "'19";
             throw ( errorMsg );
           } // end if
         } // end if
         else {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'20";
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'20";
           throw ( errorMsg );
         } // end else
       } // end if
@@ -1333,7 +1394,7 @@ void Parser::FormalParameterList() {
       } // end else
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'21";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'21";
       throw ( errorMsg );
     } // end else
 
@@ -1349,8 +1410,8 @@ void Parser::CompoundStatement() {
   int findIf = -1;
 
   if ( DEBUG ) cout << "CompoundStatement" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
@@ -1358,40 +1419,40 @@ void Parser::CompoundStatement() {
   if ( IsDefOrStatement() ) {
     while ( IsDefOrStatement() ) {
            
-      if ( mCurToken.tokenType == INT || 
-           mCurToken.tokenType == CHAR || 
-           mCurToken.tokenType == FLOAT || 
-           mCurToken.tokenType == STRING || 
-           mCurToken.tokenType == BOOL ) {
+      if ( mToken.tokenType == INT || 
+           mToken.tokenType == CHAR || 
+           mToken.tokenType == FLOAT || 
+           mToken.tokenType == STRING || 
+           mToken.tokenType == BOOL ) {
         Declaration( true );
       } // end if
-      else if ( mCurToken.tokenType == ID ||
-                mCurToken.tokenType == PP ||
-                mCurToken.tokenType == MM ||
-                mCurToken.tokenType == ADD ||
-                mCurToken.tokenType == SUB ||
-                mCurToken.tokenType == BITNOT ||
-                mCurToken.tokenType == CONSTANT ||
-                mCurToken.tokenType == RETURN ||
-                mCurToken.tokenType == BLP ||
-                mCurToken.tokenType == IF || 
-                mCurToken.tokenType == WHILE ||
-                mCurToken.tokenType == DO ||
-                mCurToken.tokenType == SCLN ||
-                mCurToken.tokenType == LP ||
-                mCurToken.tokenType == CIN ||
-                mCurToken.tokenType == COUT ) {
+      else if ( mToken.tokenType == ID ||
+                mToken.tokenType == PP ||
+                mToken.tokenType == MM ||
+                mToken.tokenType == ADD ||
+                mToken.tokenType == SUB ||
+                mToken.tokenType == BITNOT ||
+                mToken.tokenType == CONSTANT ||
+                mToken.tokenType == RETURN ||
+                mToken.tokenType == BLP ||
+                mToken.tokenType == IF || 
+                mToken.tokenType == WHILE ||
+                mToken.tokenType == DO ||
+                mToken.tokenType == SCLN ||
+                mToken.tokenType == LP ||
+                mToken.tokenType == CIN ||
+                mToken.tokenType == COUT ) {
 
         Statement();
       } // end if
       
-      if ( ! mJustPeek ) mCurToken = mScanner.GetToken();
+      if ( ! mJustPeek ) mToken = mScanner.GetToken();
       else {
-        mCurToken = mScanner.mToken;
+        mToken = mScanner.mToken;
         mJustPeek = false;
       } // end else
 
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
@@ -1399,12 +1460,12 @@ void Parser::CompoundStatement() {
     } // end while
   } // end if
   
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mCurToken.tokenType != BRP ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'23";
+  else if ( mToken.tokenType != BRP ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'23";
     throw ( errorMsg );
   } // end if
   else {
@@ -1418,28 +1479,28 @@ void Parser::CompoundStatement() {
 
 void Parser::Declaration( bool isBLP ) {
   if ( DEBUG ) cout << "Declaration" << endl;
-  string type = mCurToken.tokenString;
+  string type = mToken.tokenString;
   string name;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
   
-  if ( mCurToken.tokenType == ID ) {
-    name = mCurToken.tokenString;
-    mCurToken = mScanner.GetToken();
+  if ( mToken.tokenType == ID ) {
+    name = mToken.tokenString;
+    mToken = mScanner.GetToken();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'24";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'24";
     throw ( errorMsg );
   } // end else
   
-  if ( mCurToken.tokenType == MLP || mCurToken.tokenType == SCLN || mCurToken.tokenType == COMMA ) {
+  if ( mToken.tokenType == MLP || mToken.tokenType == SCLN || mToken.tokenType == COMMA ) {
     RestOfDeclarators( type, name, isBLP );
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'25";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'25";
     throw ( errorMsg );
   } // end else
   
@@ -1450,143 +1511,155 @@ void Parser::Statement() {
   if ( DEBUG ) cout << "Statement" << endl;
   mLastStatementIf = false;
   
-  if ( DEBUG ) cout << mCurToken.tokenString << mIfStatement << endl;
+  if ( DEBUG ) cout << mToken.tokenString << mIfStatement << endl;
   
-  if ( mCurToken.tokenType == SCLN ) return; // condition 1
-  else if ( mCurToken.tokenType == ID ||
-            mCurToken.tokenType == PP ||
-            mCurToken.tokenType == MM ||
-            mCurToken.tokenType == ADD ||
-            mCurToken.tokenType == SUB ||
-            mCurToken.tokenType == BITNOT ||
-            mCurToken.tokenType == CONSTANT ||
-            mCurToken.tokenType == LP ) { // condition 2
+  if ( mToken.tokenType == SCLN ) return; // condition 1
+  else if ( mToken.tokenType == ID ||
+            mToken.tokenType == PP ||
+            mToken.tokenType == MM ||
+            mToken.tokenType == ADD ||
+            mToken.tokenType == SUB ||
+            mToken.tokenType == BITNOT ||
+            mToken.tokenType == CONSTANT ||
+            mToken.tokenType == LP ) { // condition 2
 
     Expression();
     
-    if ( mCurToken.tokenType != SCLN ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'26";
+    if ( mToken.tokenType != SCLN ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'26";
       throw ( errorMsg );
     } // end if
   } // end if
-  else if ( mCurToken.tokenType == RETURN ) { // condition 3
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  else if ( mToken.tokenType == RETURN ) { // condition 3
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT ||
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == LP ) {
       
       Expression();
     } // end if
     
-    if ( mCurToken.tokenType != SCLN ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'27";
+    if ( mToken.tokenType != SCLN ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'27";
       throw ( errorMsg );
     } // end if
   } // end if
-  else if ( mCurToken.tokenType == BLP ) { // condition 4
+  else if ( mToken.tokenType == BLP ) { // condition 4
     CompoundStatement();
   } // end if
-  else if ( mCurToken.tokenType == IF ) { // condition 5
+  else if ( mToken.tokenType == IF ) { // condition 5
     mLastStatementIf = StatementIf();
   } // end if
-  else if ( mCurToken.tokenType == WHILE ) { // condition 6
+  else if ( mToken.tokenType == WHILE ) { // condition 6
     StatementWhile();
   } // end if
-  else if ( mCurToken.tokenType == DO ) { // condition 7
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  else if ( mToken.tokenType == DO ) { // condition 7
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
     Statement();
 
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
-    if ( mCurToken.tokenType == WHILE ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    if ( mToken.tokenType == WHILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
       
-      if ( mCurToken.tokenType == LP ) {
-        mCurToken = mScanner.GetToken();
-        if ( mCurToken.tokenType == END_OF_FILE ) {
+      if ( mToken.tokenType == LP ) {
+        mToken = mScanner.GetToken();
+        if ( mToken.tokenType == END_OF_FILE ) {
           string error = "EOF";
           throw ( error );
         } // end if
 
-        if ( mCurToken.tokenType == ID ||
-             mCurToken.tokenType == PP ||
-             mCurToken.tokenType == MM ||
-             mCurToken.tokenType == ADD ||
-             mCurToken.tokenType == SUB ||
-             mCurToken.tokenType == BITNOT ||
-             mCurToken.tokenType == CONSTANT ||
-             mCurToken.tokenType == ID ||
-             mCurToken.tokenType == LP ) {
+        if ( mToken.tokenType == ID ||
+             mToken.tokenType == PP ||
+             mToken.tokenType == MM ||
+             mToken.tokenType == ADD ||
+             mToken.tokenType == SUB ||
+             mToken.tokenType == BITNOT ||
+             mToken.tokenType == CONSTANT ||
+             mToken.tokenType == ID ||
+             mToken.tokenType == LP ) {
           Expression();
         } // end if
+        else if ( mToken.tokenType == COUT ) {
+          CoutExpression();
+        } // end if
         else {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'34";
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'34";
           throw ( errorMsg );
         } // end else
     
-        if ( mCurToken.tokenType != RP ) {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'35";
+        if ( mToken.tokenType != RP ) {
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'35";
           throw ( errorMsg );
         } // end if
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'29";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'29";
         throw ( errorMsg );
       } // end else
       
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
 
-      if ( mCurToken.tokenType != SCLN ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'30";
+      if ( mToken.tokenType != SCLN ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'30";
         throw ( errorMsg );
       } // end if
     } // end if
   } // end if
-  else if ( mCurToken.tokenType == ELSE && mIfStatement ) {
+  else if ( mToken.tokenType == ELSE && mIfStatement ) {
     mIfStatement--;
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
     Statement();
   } // end if
-  else if ( mCurToken.tokenType == COUT ) {
+  else if ( mToken.tokenType == COUT ) {
     CoutExpression();
+    if ( mToken.tokenType == END_OF_FILE ) {
+      string error = "EOF";
+      throw ( error );
+    } // end if
+
+    if ( mToken.tokenType != SCLN ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'30";
+      throw ( errorMsg );
+    } // end if
   } // end if
-  else if ( mCurToken.tokenType == CIN ) {
+  else if ( mToken.tokenType == CIN ) {
     CinExpression();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'3'";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'3'";
     throw ( errorMsg );
   } // end else
   
@@ -1595,154 +1668,166 @@ void Parser::Statement() {
 
 void Parser::CoutExpression() {
   if ( DEBUG ) cout << "CoutExpression" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
 
-  if ( mCurToken.tokenType == LS ) {
-    while ( mCurToken.tokenType == LS ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
-        string error = "EOF";
-        throw ( error );
-      } // end if
-
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == LP || mCurToken.tokenType == CONSTANT ) {
-        UnsignedUnaryExp() ;
-      } // end if
-      else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'33";
-        throw ( errorMsg );
-      } // end else
-    } // end while
-
-    if ( mCurToken.tokenType != SCLN ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'32";
-      throw ( errorMsg );
-    } // end if
-  } // end if
-  else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'33";
+  if ( mToken.tokenType != LS ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'33";
     throw ( errorMsg );
-  } // end else
+  } // end if
+
+  while ( mToken.tokenType == LS ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
+      string error = "EOF";
+      throw ( error );
+    } // end if
+
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == LP ) { // condition 2
+
+      Expression();
+
+    } // end if
+    else {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'33";
+      throw ( errorMsg );
+    } // end else
+  } // end while
+    
 } // Parser::CoutExpression()
 
 void Parser::CinExpression() {
   if ( DEBUG ) cout << "CinExpression" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
 
-  if ( mCurToken.tokenType == RS ) {
-    while ( mCurToken.tokenType == RS ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == RS ) {
+    while ( mToken.tokenType == RS ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
 
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == LP || mCurToken.tokenType == CONSTANT ) {
+      if ( mToken.tokenType == ID || mToken.tokenType == LP || mToken.tokenType == CONSTANT ) {
         UnsignedUnaryExp() ;
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'33";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'33";
         throw ( errorMsg );
       } // end else
     } // end while
 
-    if ( mCurToken.tokenType != SCLN ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'35";
+    if ( mToken.tokenType != SCLN ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'35";
       throw ( errorMsg );
     } // end if
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'36";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'36";
     throw ( errorMsg );
   } // end else
 } // Parser::CinExpression()
 
 bool Parser::StatementIf() {
   if ( DEBUG ) cout << " StatementIf" << endl;
-  mCurToken = mScanner.GetToken();
+  mToken = mScanner.GetToken();
   mIfStatement++;
 
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
     
-  if ( mCurToken.tokenType == LP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == LP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || 
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || 
+         mToken.tokenType == LP ) {
       Expression();
     } // end if
+    else if ( mToken.tokenType == COUT ) {
+      CoutExpression();
+    } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'31";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'31";
       throw ( errorMsg );
     } // end else
     
-    if ( mCurToken.tokenType != RP ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'32";
+    if ( mToken.tokenType != RP ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'32";
       throw ( errorMsg );
     } // end if
     
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT ||
-         mCurToken.tokenType == RETURN ||
-         mCurToken.tokenType == BLP ||
-         mCurToken.tokenType == IF || 
-         mCurToken.tokenType == WHILE ||
-         mCurToken.tokenType == DO ||
-         mCurToken.tokenType == SCLN ||
-         mCurToken.tokenType == CIN ||
-         mCurToken.tokenType == COUT ||
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == RETURN ||
+         mToken.tokenType == BLP ||
+         mToken.tokenType == IF || 
+         mToken.tokenType == WHILE ||
+         mToken.tokenType == DO ||
+         mToken.tokenType == SCLN ||
+         mToken.tokenType == CIN ||
+         mToken.tokenType == COUT ||
+         mToken.tokenType == LP ) {
       Statement();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'33";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'33";
       throw ( errorMsg );
     } // end else
     
-      
-    mScanner.GetToken();
     
+    mScanner.GetToken();
+
     if ( mScanner.mToken.tokenType == ELSE ) {
-      mCurToken = mScanner.mToken;
+      mToken = mScanner.mToken;
       Statement();
       return false;
     } // end if
     else {
+      
       mJustPeek = true;
     } // end else
   } // end if
+  else {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'31";
+    throw ( errorMsg );
+  } // end else
 
   if ( DEBUG ) cout << " end of StatementIf" << endl;
 
@@ -1751,123 +1836,130 @@ bool Parser::StatementIf() {
 
 void Parser::StatementWhile() {
   if ( DEBUG ) cout << "StatementWhile" << endl;
-  mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
     
-  if ( mCurToken.tokenType == LP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == LP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT ||
-         mCurToken.tokenType == ID ||
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == ID ||
+         mToken.tokenType == LP ) {
       Expression();
     } // end if
+    else if ( mToken.tokenType == COUT ) {
+      CoutExpression();
+    } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'34";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'34";
       throw ( errorMsg );
     } // end else
     
-    if ( mCurToken.tokenType != RP ) {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'35";
+    if ( mToken.tokenType != RP ) {
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'35";
       throw ( errorMsg );
     } // end if
     
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT ||
-         mCurToken.tokenType == RETURN ||
-         mCurToken.tokenType == BLP ||
-         mCurToken.tokenType == IF || 
-         mCurToken.tokenType == WHILE ||
-         mCurToken.tokenType == DO ||
-         mCurToken.tokenType == SCLN ||
-         mCurToken.tokenType == CIN ||
-         mCurToken.tokenType == COUT ||
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == RETURN ||
+         mToken.tokenType == BLP ||
+         mToken.tokenType == IF || 
+         mToken.tokenType == WHILE ||
+         mToken.tokenType == DO ||
+         mToken.tokenType == SCLN ||
+         mToken.tokenType == CIN ||
+         mToken.tokenType == COUT ||
+         mToken.tokenType == LP ) {
       Statement();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'36";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'36";
       throw ( errorMsg );
     } // end else
   } // end if
+  else {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'31";
+    throw ( errorMsg );
+  } // end else
   
   if ( DEBUG ) cout << "end of StatementWhile" << endl;
 } // Parser::StatementWhile()
 
 bool Parser::IsDefOrStatement() {
   if ( DEBUG ) cout << "IsDefOrStatement" << endl;
-  return ( mCurToken.tokenType == INT || 
-           mCurToken.tokenType == CHAR || 
-           mCurToken.tokenType == FLOAT || 
-           mCurToken.tokenType == STRING || 
-           mCurToken.tokenType == BOOL ||
-           mCurToken.tokenType == ID ||
-           mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM ||
-           mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB ||
-           mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT ||
-           mCurToken.tokenType == RETURN ||
-           mCurToken.tokenType == BLP ||
-           mCurToken.tokenType == IF || 
-           mCurToken.tokenType == WHILE ||
-           mCurToken.tokenType == DO ||
-           mCurToken.tokenType == SCLN ||
-           mCurToken.tokenType == LP ||
-           mCurToken.tokenType == CIN ||
-           mCurToken.tokenType == COUT );
+  return ( mToken.tokenType == INT || 
+           mToken.tokenType == CHAR || 
+           mToken.tokenType == FLOAT || 
+           mToken.tokenType == STRING || 
+           mToken.tokenType == BOOL ||
+           mToken.tokenType == ID ||
+           mToken.tokenType == PP ||
+           mToken.tokenType == MM ||
+           mToken.tokenType == ADD ||
+           mToken.tokenType == SUB ||
+           mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT ||
+           mToken.tokenType == RETURN ||
+           mToken.tokenType == BLP ||
+           mToken.tokenType == IF || 
+           mToken.tokenType == WHILE ||
+           mToken.tokenType == DO ||
+           mToken.tokenType == SCLN ||
+           mToken.tokenType == LP ||
+           mToken.tokenType == CIN ||
+           mToken.tokenType == COUT );
 } // Parser::IsDefOrStatement()
 
 void Parser::Expression() {
   if ( DEBUG ) cout << "Expression" << endl;
   BasicExpression();
   
-  if ( mCurToken.tokenType == COMMA ) {
-    while ( mCurToken.tokenType == COMMA ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == COMMA ) {
+    while ( mToken.tokenType == COMMA ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
       
-      if ( mCurToken.tokenType == ID ||
-           mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM ||
-           mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB ||
-           mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT ||
-           mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID ||
+           mToken.tokenType == PP ||
+           mToken.tokenType == MM ||
+           mToken.tokenType == ADD ||
+           mToken.tokenType == SUB ||
+           mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT ||
+           mToken.tokenType == LP ) {
         BasicExpression();
       } // end if
       
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
@@ -1879,28 +1971,28 @@ void Parser::Expression() {
 
 void Parser::BasicExpression() {
   if ( DEBUG ) cout << "BasicExpression" << endl;
-  if ( mCurToken.tokenType == ID ) {
-    // FindVariable( mCurToken.tokenString, true );
-    string name = mCurToken.tokenString;
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) { 
+  if ( mToken.tokenType == ID ) {
+    // FindVariable( mToken.tokenString, true );
+    string name = mToken.tokenString;
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) { 
       string error = "EOF";
       throw ( error );
     } // end if
     
     RestOfIDStartedBasicExp( name );
   } // end if
-  else if ( mCurToken.tokenType == PP || mCurToken.tokenType == MM ) { // condition 2
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  else if ( mToken.tokenType == PP || mToken.tokenType == MM ) { // condition 2
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType == ID ) {
-      FindVariable( mCurToken.tokenString, true );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    if ( mToken.tokenType == ID ) {
+      FindVariable( mToken.tokenString, true );
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
@@ -1908,69 +2000,69 @@ void Parser::BasicExpression() {
       RestOfPPMMIDStartedBasicExp();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'38";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'38";
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB || 
-            mCurToken.tokenType == BITNOT ) { // condition 3
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  else if ( mToken.tokenType == ADD || mToken.tokenType == SUB || 
+            mToken.tokenType == BITNOT ) { // condition 3
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    while ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    while ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
     } // end while
     
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == CONSTANT || 
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID || mToken.tokenType == CONSTANT || 
+         mToken.tokenType == LP ) {
       SignedUnaryExp();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'39";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'39";
       throw ( errorMsg );
     } // end else
   
     RomceAndRomloe();
   } // end if
-  else if ( mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) { // condition 4
-    if ( mCurToken.tokenType == LP ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+  else if ( mToken.tokenType == CONSTANT || mToken.tokenType == LP ) { // condition 4
+    if ( mToken.tokenType == LP ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
     
-      if ( mCurToken.tokenType == ID ||
-           mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM ||
-           mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB ||
-           mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT ||
-           mCurToken.tokenType == ID ||
-           mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID ||
+           mToken.tokenType == PP ||
+           mToken.tokenType == MM ||
+           mToken.tokenType == ADD ||
+           mToken.tokenType == SUB ||
+           mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT ||
+           mToken.tokenType == ID ||
+           mToken.tokenType == LP ) {
         Expression();
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'40";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'40";
         throw ( errorMsg );
       } // end else
       
-      if ( mCurToken.tokenType != RP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'41";
+      if ( mToken.tokenType != RP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'41";
         throw ( errorMsg );      
       } // end if
     } // end if
   
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if	
@@ -1983,68 +2075,68 @@ void Parser::BasicExpression() {
 
 void Parser::RestOfIDStartedBasicExp( string name ) {
   if ( DEBUG ) cout << "RestOfIDStartedBasicExp" << endl;
-  if ( mCurToken.tokenType == MLP || mCurToken.tokenType == ASSIGN || 
-       mCurToken.tokenType == TE || mCurToken.tokenType == DE || 
-       mCurToken.tokenType == RE || mCurToken.tokenType == PE || 
-       mCurToken.tokenType == ME || mCurToken.tokenType == PP ||
-       mCurToken.tokenType == MM || mCurToken.tokenType == ADD || 
-       mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-       mCurToken.tokenType == ID || mCurToken.tokenType == CONSTANT ) { // condition 1
+  if ( mToken.tokenType == MLP || mToken.tokenType == ASSIGN || 
+       mToken.tokenType == TE || mToken.tokenType == DE || 
+       mToken.tokenType == RE || mToken.tokenType == PE || 
+       mToken.tokenType == ME || mToken.tokenType == PP ||
+       mToken.tokenType == MM || mToken.tokenType == ADD || 
+       mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+       mToken.tokenType == ID || mToken.tokenType == CONSTANT ) { // condition 1
 
-    if ( mCurToken.tokenType == MLP ) {
+    if ( mToken.tokenType == MLP ) {
       FindVariable( name, true );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
     
-      if ( mCurToken.tokenType == ID ||
-           mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM ||
-           mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB ||
-           mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT ||
-           mCurToken.tokenType == ID ||
-           mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID ||
+           mToken.tokenType == PP ||
+           mToken.tokenType == MM ||
+           mToken.tokenType == ADD ||
+           mToken.tokenType == SUB ||
+           mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT ||
+           mToken.tokenType == ID ||
+           mToken.tokenType == LP ) {
         Expression();
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'42";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'42";
         throw ( errorMsg );
       } // end else
     
-      if ( mCurToken.tokenType != MRP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'43";
+      if ( mToken.tokenType != MRP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'43";
         throw ( errorMsg );
       } // end if
       else {
-        mCurToken = mScanner.GetToken();
+        mToken = mScanner.GetToken();
       } // end else
     } // end if
     
-    if ( mCurToken.tokenType == ASSIGN || mCurToken.tokenType == TE || 
-         mCurToken.tokenType == DE || mCurToken.tokenType == RE || 
-         mCurToken.tokenType == PE || mCurToken.tokenType == ME ) {
+    if ( mToken.tokenType == ASSIGN || mToken.tokenType == TE || 
+         mToken.tokenType == DE || mToken.tokenType == RE || 
+         mToken.tokenType == PE || mToken.tokenType == ME ) {
 
       FindVariable( name, true );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
       
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
         BasicExpression();
       } // end if
     } // end if
     else  {
-      if ( mCurToken.tokenType == MM || mCurToken.tokenType == PP ) mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      if ( mToken.tokenType == MM || mToken.tokenType == PP ) mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
@@ -2053,25 +2145,25 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
       RomceAndRomloe();
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == LP ) {
+  else if ( mToken.tokenType == LP ) {
     CheckFunctionNameExist( name );
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+         mToken.tokenType == MM || mToken.tokenType == ADD ||
+         mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       ActualParameterList();
       
     } // end if
 
-    if ( mCurToken.tokenType == RP ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    if ( mToken.tokenType == RP ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
@@ -2079,13 +2171,13 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
       RomceAndRomloe();
       /*
       else  {
-        string errorMsg = "unexpected token '" + mCurToken.tokenString + "'\n45";
+        string errorMsg = "unexpected token '" + mToken.tokenString + "'\n45";
         throw ( errorMsg );
       } // end else
       */
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'46";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'46";
       throw ( errorMsg );
     } // end else
   } // end if
@@ -2099,51 +2191,51 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
 
 void Parser::RestOfPPMMIDStartedBasicExp() {
   if ( DEBUG ) cout << "RestOfPPMMIDStartedBasicExp" << endl;
-  if ( mCurToken.tokenType == MLP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == MLP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
     
-    if ( mCurToken.tokenType == ID ||
-         mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM ||
-         mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB ||
-         mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT ||
-         mCurToken.tokenType == ID ||
-         mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID ||
+         mToken.tokenType == PP ||
+         mToken.tokenType == MM ||
+         mToken.tokenType == ADD ||
+         mToken.tokenType == SUB ||
+         mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT ||
+         mToken.tokenType == ID ||
+         mToken.tokenType == LP ) {
       Expression();
       
       
-      if ( mCurToken.tokenType == MRP ) {
-        mCurToken = mScanner.GetToken();
-        if ( mCurToken.tokenType == END_OF_FILE ) {
+      if ( mToken.tokenType == MRP ) {
+        mToken = mScanner.GetToken();
+        if ( mToken.tokenType == END_OF_FILE ) {
           string error = "EOF";
           throw ( error );
         } // end if
         
-        if ( mCurToken.tokenType == PP || mCurToken.tokenType == LP ||
-             mCurToken.tokenType == MM || mCurToken.tokenType == ADD || 
-             mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-             mCurToken.tokenType == ID || mCurToken.tokenType == CONSTANT ) {
+        if ( mToken.tokenType == PP || mToken.tokenType == LP ||
+             mToken.tokenType == MM || mToken.tokenType == ADD || 
+             mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+             mToken.tokenType == ID || mToken.tokenType == CONSTANT ) {
 
           RomceAndRomloe();
         } // end if
         else {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'47";
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'47";
           throw ( errorMsg );
         } // end else
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'48";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'48";
         throw ( errorMsg );
       } // end else
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'49";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'49";
       throw ( errorMsg );
     } // end else
   } // end if
@@ -2156,8 +2248,8 @@ void Parser::RestOfPPMMIDStartedBasicExp() {
 
 void Parser::Sign() {
   if ( DEBUG ) cout << "Sign" << endl;
-  if ( mCurToken.tokenType != ADD && mCurToken.tokenType != SUB && mCurToken.tokenType != BITNOT ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'50";
+  if ( mToken.tokenType != ADD && mToken.tokenType != SUB && mToken.tokenType != BITNOT ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'50";
     throw ( errorMsg );
   } // end if
 } // Parser::Sign()
@@ -2166,21 +2258,21 @@ void Parser::ActualParameterList() {
   if ( DEBUG ) cout << "ActualParameterList" << endl;
   BasicExpression();
   
-  while ( mCurToken.tokenType == COMMA ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  while ( mToken.tokenType == COMMA ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
 
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+         mToken.tokenType == MM || mToken.tokenType == ADD ||
+         mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       BasicExpression();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'51";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'51";
       throw ( errorMsg );
     } // end else
     
@@ -2192,10 +2284,10 @@ void Parser::ActualParameterList() {
 
 void Parser::AssignmentOperator() {
   if ( DEBUG ) cout << "AssignmentOperator" << endl;
-  if ( mCurToken.tokenType != ASSIGN && mCurToken.tokenType != TE && 
-       mCurToken.tokenType != DE && mCurToken.tokenType != RE &&
-       mCurToken.tokenType != PE && mCurToken.tokenType != ME ) {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'52";
+  if ( mToken.tokenType != ASSIGN && mToken.tokenType != TE && 
+       mToken.tokenType != DE && mToken.tokenType != RE &&
+       mToken.tokenType != PE && mToken.tokenType != ME ) {
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'52";
     throw ( errorMsg );
   } // end if
 } // Parser::AssignmentOperator()
@@ -2205,50 +2297,50 @@ void Parser::RomceAndRomloe() {
   
   RestOfMaybeLogicalOrExp();
   
-  // mCurToken = mScanner.GetToken();
-  if ( mCurToken.tokenType == END_OF_FILE ) {
+  // mToken = mScanner.GetToken();
+  if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
   
-  if ( mCurToken.tokenType == QUE ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  if ( mToken.tokenType == QUE ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
   
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+    if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+         mToken.tokenType == MM || mToken.tokenType == ADD ||
+         mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       BasicExpression();
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'53";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'53";
       throw ( errorMsg );
     } // end else
     
-    if ( mCurToken.tokenType == COLON ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+    if ( mToken.tokenType == COLON ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
 
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
         BasicExpression();
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'54";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'54";
         throw ( errorMsg );
       } // end else
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'55";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'55";
       throw ( errorMsg );
     } // end else
   } // end if
@@ -2261,8 +2353,8 @@ void Parser::RestOfMaybeLogicalOrExp() {
   RestOfMaybeLogicalAndExp();
   
   
-  while ( mCurToken.tokenType == OR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == OR ) {
+    mToken = mScanner.GetToken();
     
     MaybeLogicalAndExp();
   } // end while
@@ -2275,8 +2367,8 @@ void Parser::MaybeLogicalAndExp() {
   MaybeBitOrExp();
   
   
-  while ( mCurToken.tokenType == AND ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == AND ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitOrExp();
   } // end while
@@ -2288,8 +2380,8 @@ void Parser::RestOfMaybeLogicalAndExp() {
   if ( DEBUG ) cout << "RestOfMaybeLogicalAndExp" << endl;
   RestOfMaybeBitOrExp();
   
-  while ( mCurToken.tokenType == AND ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == AND ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitOrExp();
   } // end while
@@ -2301,8 +2393,8 @@ void Parser::MaybeBitOrExp() {
   if ( DEBUG ) cout << "MaybeBitOrExp" << endl;
   MaybeBitExOrExp();
   
-  while ( mCurToken.tokenType == BITOR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITOR ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitExOrExp();
   } // end while
@@ -2314,8 +2406,8 @@ void Parser::RestOfMaybeBitOrExp() {
   if ( DEBUG ) cout << "RestOfMaybeBitOrExp" << endl;
   RestOfMaybeBitExOrExp();
 
-  while ( mCurToken.tokenType == BITOR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITOR ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitExOrExp();
   } // end while
@@ -2327,8 +2419,8 @@ void Parser::MaybeBitExOrExp() {
   if ( DEBUG ) cout << "MaybeBitExOrExp" << endl;
   MaybeBitAndExp();
 
-  while ( mCurToken.tokenType == BITXOR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITXOR ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitAndExp();
   } // end while
@@ -2340,8 +2432,8 @@ void Parser::RestOfMaybeBitExOrExp() {
   if ( DEBUG ) cout << "RestOfMaybeBitExOrExp" << endl;
   RestOfMaybeBitAndExp();
 
-  while ( mCurToken.tokenType == BITXOR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITXOR ) {
+    mToken = mScanner.GetToken();
     
     MaybeBitAndExp();
   } // end while
@@ -2353,8 +2445,8 @@ void Parser::MaybeBitAndExp() {
   if ( DEBUG ) cout << "MaybeBitAndExp" << endl;
   MaybeEqualityExp();
   
-  while ( mCurToken.tokenType == BITAND ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITAND ) {
+    mToken = mScanner.GetToken();
     
     MaybeEqualityExp();
   } // end while
@@ -2366,8 +2458,8 @@ void Parser::RestOfMaybeBitAndExp() {
   if ( DEBUG ) cout << "RestOfMaybeBitAndExp" << endl;
   RestOfMaybeEqualityExp();
 
-  while ( mCurToken.tokenType == BITAND ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == BITAND ) {
+    mToken = mScanner.GetToken();
     
     MaybeEqualityExp();
   } // end while
@@ -2379,8 +2471,8 @@ void Parser::MaybeEqualityExp() {
   if ( DEBUG ) cout << "MaybeEqualityExp" << endl;
   MaybeRelationalExp();
 
-  while ( mCurToken.tokenType == NEQ || mCurToken.tokenType == EQ ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == NEQ || mToken.tokenType == EQ ) {
+    mToken = mScanner.GetToken();
     
     MaybeRelationalExp();
   } // end while
@@ -2392,8 +2484,8 @@ void Parser::RestOfMaybeEqualityExp() {
   if ( DEBUG ) cout << "RestOfMaybeEqualityExp" << endl;
   RestOfMaybeRelationalExp();
 
-  while ( mCurToken.tokenType == NEQ || mCurToken.tokenType == EQ ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == NEQ || mToken.tokenType == EQ ) {
+    mToken = mScanner.GetToken();
     
     MaybeRelationalExp();
   } // end while
@@ -2405,9 +2497,9 @@ void Parser::MaybeRelationalExp() {
   if ( DEBUG ) cout << "MaybeRelationalExp" << endl;
   MaybeShiftExp();
 
-  while ( mCurToken.tokenType == GE || mCurToken.tokenType == LE ||
-          mCurToken.tokenType == LSS || mCurToken.tokenType == GTR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == GE || mToken.tokenType == LE ||
+          mToken.tokenType == LSS || mToken.tokenType == GTR ) {
+    mToken = mScanner.GetToken();
     
     MaybeShiftExp();
   } // end while
@@ -2419,9 +2511,9 @@ void Parser::RestOfMaybeRelationalExp() {
   if ( DEBUG ) cout << "RestOfMaybeRelationalExp" << endl;
   RestOfMaybeShiftExp();
 
-  while ( mCurToken.tokenType == GE || mCurToken.tokenType == LE ||
-          mCurToken.tokenType == LSS || mCurToken.tokenType == GTR ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == GE || mToken.tokenType == LE ||
+          mToken.tokenType == LSS || mToken.tokenType == GTR ) {
+    mToken = mScanner.GetToken();
     
     MaybeShiftExp();
   } // end while
@@ -2433,9 +2525,9 @@ void Parser::MaybeShiftExp() {
   if ( DEBUG ) cout << "MaybeShiftExp" << endl;
   MaybeAdditiveExp();
   
-  while ( mCurToken.tokenType == RS || mCurToken.tokenType == LS ||
-          mCurToken.tokenType == LE || mCurToken.tokenType == GE ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == RS || mToken.tokenType == LS ||
+          mToken.tokenType == LE || mToken.tokenType == GE ) {
+    mToken = mScanner.GetToken();
     
     MaybeAdditiveExp();
   } // end while
@@ -2447,9 +2539,9 @@ void Parser::RestOfMaybeShiftExp() {
   if ( DEBUG ) cout << "RestOfMaybeShiftExp" << endl;
   RestOfMaybeAdditiveExp();
   
-  while ( mCurToken.tokenType == RS || mCurToken.tokenType == LS ||
-          mCurToken.tokenType == LE || mCurToken.tokenType == GE ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == RS || mToken.tokenType == LS ||
+          mToken.tokenType == LE || mToken.tokenType == GE ) {
+    mToken = mScanner.GetToken();
     
     MaybeAdditiveExp();
   } // end while
@@ -2461,8 +2553,8 @@ void Parser::MaybeAdditiveExp() {
   if ( DEBUG ) cout << "MaybeAdditiveExp" << endl;
   MaybeMultExp();
   
-  while ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == ADD || mToken.tokenType == SUB ) {
+    mToken = mScanner.GetToken();
     
     MaybeMultExp();
   } // end while
@@ -2475,8 +2567,8 @@ void Parser::RestOfMaybeAdditiveExp() {
 
   RestOfMaybeMultExp();
   
-  while ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB ) {
-    mCurToken = mScanner.GetToken();
+  while ( mToken.tokenType == ADD || mToken.tokenType == SUB ) {
+    mToken = mScanner.GetToken();
     
     MaybeMultExp();
   } // end while
@@ -2497,9 +2589,9 @@ void Parser::MaybeMultExp() {
 void Parser::RestOfMaybeMultExp() {
   if ( DEBUG ) cout << "RestOfMaybeMultExp" << endl;
 
-  while ( mCurToken.tokenType == MULT || mCurToken.tokenType == DIV || mCurToken.tokenType == REM ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == END_OF_FILE ) {
+  while ( mToken.tokenType == MULT || mToken.tokenType == DIV || mToken.tokenType == REM ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
@@ -2511,104 +2603,104 @@ void Parser::RestOfMaybeMultExp() {
 } // Parser::RestOfMaybeMultExp()
 
 void Parser::UnaryExp() {
-  if ( DEBUG ) cout << mCurToken.tokenString << " UnaryExp" << endl;
+  if ( DEBUG ) cout << mToken.tokenString << " UnaryExp" << endl;
 
-  if ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ) {
-    mCurToken = mScanner.GetToken();
+  if ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
+    mToken = mScanner.GetToken();
   
-    while ( mCurToken.tokenType == ADD || mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ) {
-      mCurToken = mScanner.GetToken();
+    while ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
+      mToken = mScanner.GetToken();
     } // end while
 
     SignedUnaryExp();
   } // end if
-  else if ( mCurToken.tokenType == ID || mCurToken.tokenType == LP || mCurToken.tokenType == CONSTANT ) {
+  else if ( mToken.tokenType == ID || mToken.tokenType == LP || mToken.tokenType == CONSTANT ) {
     UnsignedUnaryExp();
   } // end if
-  else if ( mCurToken.tokenType == PP || mCurToken.tokenType == MM ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == ID ) {
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == MLP ) {
-        mCurToken = mScanner.GetToken();
-        if ( mCurToken.tokenType == ID ||
-             mCurToken.tokenType == PP ||
-             mCurToken.tokenType == MM ||
-             mCurToken.tokenType == ADD ||
-             mCurToken.tokenType == SUB ||
-             mCurToken.tokenType == BITNOT ||
-             mCurToken.tokenType == CONSTANT ||
-             mCurToken.tokenType == ID ||
-             mCurToken.tokenType == LP ) {
+  else if ( mToken.tokenType == PP || mToken.tokenType == MM ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == ID ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == MLP ) {
+        mToken = mScanner.GetToken();
+        if ( mToken.tokenType == ID ||
+             mToken.tokenType == PP ||
+             mToken.tokenType == MM ||
+             mToken.tokenType == ADD ||
+             mToken.tokenType == SUB ||
+             mToken.tokenType == BITNOT ||
+             mToken.tokenType == CONSTANT ||
+             mToken.tokenType == ID ||
+             mToken.tokenType == LP ) {
           Expression();
 
-          if ( mCurToken.tokenType != MRP ) {
-            string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'56";
+          if ( mToken.tokenType != MRP ) {
+            string errorMsg = "unexpected token : '" + mToken.tokenString + "'56";
             throw ( errorMsg );
           } // end if
         } // end if
         else {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'57";
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'57";
           throw ( errorMsg );
         } // end else
       } // end if
     } // end if
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'58";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'58";
     throw ( errorMsg );
   } // end else
   
-  // mCurToken = mScanner.GetToken();
+  // mToken = mScanner.GetToken();
   if ( DEBUG ) cout << "end of UnaryExp" << endl;
 } // Parser::UnaryExp()
 
 void Parser::SignedUnaryExp() {
   if ( DEBUG ) cout << "SignedUnaryExp" << endl;
 
-  if ( mCurToken.tokenType == ID ) {
-    string name = mCurToken.tokenString;
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == LP ) {
+  if ( mToken.tokenType == ID ) {
+    string name = mToken.tokenString;
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == LP ) {
       CheckFunctionNameExist( name );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
 
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
         ActualParameterList();
       } // end if
 
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType != RP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'59";
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType != RP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'59";
         throw ( errorMsg );
       } // end if
       else {
-        mCurToken = mScanner.GetToken();
+        mToken = mScanner.GetToken();
       } // end else
     } // end if
-    else if ( mCurToken.tokenType == MLP ) {
+    else if ( mToken.tokenType == MLP ) {
       FindVariable( name, true );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       
         Expression();
-        if ( mCurToken.tokenType != MRP ) {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'60";
+        if ( mToken.tokenType != MRP ) {
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'60";
           throw ( errorMsg );
         } // end if
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'61";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'61";
         throw ( errorMsg );
       } // end else
     } // end if
@@ -2616,29 +2708,29 @@ void Parser::SignedUnaryExp() {
       FindVariable( name, true );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == LP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+  else if ( mToken.tokenType == LP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+         mToken.tokenType == MM || mToken.tokenType == ADD ||
+         mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       
       Expression();
-      if ( mCurToken.tokenType != RP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'62";
+      if ( mToken.tokenType != RP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'62";
         throw ( errorMsg );
       } // end if
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'63";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'63";
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == CONSTANT ) {
-    mCurToken = mScanner.GetToken();
+  else if ( mToken.tokenType == CONSTANT ) {
+    mToken = mScanner.GetToken();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'64";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'64";
     throw ( errorMsg );
   } // end else
 
@@ -2648,90 +2740,90 @@ void Parser::SignedUnaryExp() {
 void Parser::UnsignedUnaryExp() {
   if ( DEBUG ) cout << "UnsignedUnaryExp" << endl;
 
-  if ( mCurToken.tokenType == ID ) {
-    string name = mCurToken.tokenString;
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == LP ) {
+  if ( mToken.tokenType == ID ) {
+    string name = mToken.tokenString;
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == LP ) {
       CheckFunctionNameExist( name );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == END_OF_FILE ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if 
 
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
         ActualParameterList();
       } // end if
-      else mCurToken = mScanner.GetToken();
+      else mToken = mScanner.GetToken();
 
-      if ( mCurToken.tokenType != RP ) {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'65";
+      if ( mToken.tokenType != RP ) {
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'65";
         throw ( errorMsg );
       } // end if
       else {
-        mCurToken = mScanner.GetToken();
+        mToken = mScanner.GetToken();
       } // end else
     } // end if
-    else if ( mCurToken.tokenType == MLP ) {
+    else if ( mToken.tokenType == MLP ) {
       FindVariable( name, true );
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-           mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-           mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-           mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+           mToken.tokenType == MM || mToken.tokenType == ADD ||
+           mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+           mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       
         Expression();
-        if ( mCurToken.tokenType != MRP ) {
-          string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'66";
+        if ( mToken.tokenType != MRP ) {
+          string errorMsg = "unexpected token : '" + mToken.tokenString + "'66";
           throw ( errorMsg );
         } // end if
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'67";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'67";
         throw ( errorMsg );
       } // end else
 
-      mCurToken = mScanner.GetToken();
-      if ( mCurToken.tokenType == PP || mCurToken.tokenType == MM ) {
-        mCurToken = mScanner.GetToken(); // do something
+      mToken = mScanner.GetToken();
+      if ( mToken.tokenType == PP || mToken.tokenType == MM ) {
+        mToken = mScanner.GetToken(); // do something
       } // end if
     } // end if
-    else if ( mCurToken.tokenType == PP || mCurToken.tokenType == MM ) {
-      mCurToken = mScanner.GetToken(); // do something
+    else if ( mToken.tokenType == PP || mToken.tokenType == MM ) {
+      mToken = mScanner.GetToken(); // do something
     } // end if
     else {
       FindVariable( name, true );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == LP ) {
-    mCurToken = mScanner.GetToken();
-    if ( mCurToken.tokenType == ID || mCurToken.tokenType == PP ||
-         mCurToken.tokenType == MM || mCurToken.tokenType == ADD ||
-         mCurToken.tokenType == SUB || mCurToken.tokenType == BITNOT ||
-         mCurToken.tokenType == CONSTANT || mCurToken.tokenType == LP ) {
+  else if ( mToken.tokenType == LP ) {
+    mToken = mScanner.GetToken();
+    if ( mToken.tokenType == ID || mToken.tokenType == PP ||
+         mToken.tokenType == MM || mToken.tokenType == ADD ||
+         mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
+         mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       
       Expression();
-      if ( mCurToken.tokenType == RP ) {
-        mCurToken = mScanner.GetToken();
+      if ( mToken.tokenType == RP ) {
+        mToken = mScanner.GetToken();
       } // end if
       else {
-        string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'68";
+        string errorMsg = "unexpected token : '" + mToken.tokenString + "'68";
         throw ( errorMsg );
       } // end else
     } // end if
     else {
-      string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'69";
+      string errorMsg = "unexpected token : '" + mToken.tokenString + "'69";
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mCurToken.tokenType == CONSTANT ) {
-    mCurToken = mScanner.GetToken();
+  else if ( mToken.tokenType == CONSTANT ) {
+    mToken = mScanner.GetToken();
   } // end if
   else {
-    string errorMsg = "unexpected token : '" + mCurToken.tokenString + "'64";
+    string errorMsg = "unexpected token : '" + mToken.tokenString + "'64";
     throw ( errorMsg );
   } // end else
 
@@ -2797,9 +2889,10 @@ void Parser::RemoveVariables() {
 
 int Parser::FindVariable( string name, bool printError ) {
   if ( DEBUG ) cout << name << " FindVariable" << endl;
+    
   for ( int i = 0 ; i < mVariableList.size() ; i++ ) {
     if ( mVariableList[i].name == name ) {
-      if ( mVariableList[i].region >= mThreshold ) return i;
+      if ( mVariableList[i].region >= mThreshold || mVariableList[i].region == 0 ) return i;
     } // end if
   } // end for
 
@@ -2879,17 +2972,44 @@ void Parser::ListFunction( string name ) {
   int preSpace = 0;
   string pre = "";
   string cur = "";
+  int stack = -1;
+  int preSpaceOneTime = 0;
   for ( int i = 0 ; i < mFunctionList.size() ; i++ ) {
     if ( name == mFunctionList[i].functionName ) {
       cout << mFunctionList[i].type << " " << mFunctionList[i].functionName;
+      int next = 3;
+      string nextToken;
       for ( int j = 2 ; j < mFunctionList[i].tokenList.size() ; j++ ) {
         cout << mFunctionList[i].tokenList[j].tokenString;
+        if ( mFunctionList[i].tokenList[j].tokenString == "if" ) stack = 0;
+        else if ( mFunctionList[i].tokenList[j].tokenString == "while" ) stack = 0;
+        else if ( stack >= 0 && mFunctionList[i].tokenList[j].tokenString == "(" ) stack++;
+        else if ( stack > 0 && mFunctionList[i].tokenList[j].tokenString == ")" ) {
+          stack--;
+          nextToken = mFunctionList[i].tokenList[next].tokenString;
+
+          if ( stack == 0 && mFunctionList[i].tokenList[next].tokenString != "{" ) {
+            stack = -1;
+            preSpaceOneTime += 2;
+            cout << endl;
+            for ( int k = 0 ; k < preSpaceOneTime ; k++ ) {
+              cout << " ";
+            } // end for
+          } // end if
+        } // end if
+        
+        
+        if ( next < mFunctionList[i].tokenList.size() ) 
+          nextToken = mFunctionList[i].tokenList[next].tokenString;
+
         if ( j == mFunctionList[i].tokenList.size() - 2 ) cout << endl;
         else if ( j == mFunctionList[i].tokenList.size() - 1 ) ;
         else if ( mFunctionList[i].tokenList[j].tokenString == ";" ) {
           cout << endl;
-          if ( j < mFunctionList[i].tokenList.size() - 1 && 
-               mFunctionList[i].tokenList[j + 1].tokenString == "}" ) preSpace = preSpace - 2;
+          preSpaceOneTime = 0;
+          if ( next < mFunctionList[i].tokenList.size() && 
+               nextToken == "}" ) preSpace = preSpace - 2;
+
           for ( int k = 0 ; k < preSpace ; k++ ) {
             cout << " ";
           } // end for
@@ -2903,17 +3023,19 @@ void Parser::ListFunction( string name ) {
         } // end if
         else if ( mFunctionList[i].tokenList[j].tokenString == "}" ) {
           cout << endl;
-          
           for ( int k = 0 ; k < preSpace ; k++ ) {
             cout << " ";
           } // end for
-
         } // end if
         else if ( mFunctionList[i].tokenList[j + 1].tokenString != "[" &&
                   ( mFunctionList[i].tokenList[j + 1].tokenString != "(" ||
                     ( mFunctionList[i].tokenList[j].tokenString == "while" || 
                       mFunctionList[i].tokenList[j].tokenString == "if" ) ) &&
-                  mFunctionList[i].tokenList[j + 1].tokenString != "++" ) cout << " ";
+                  mFunctionList[i].tokenList[j + 1].tokenString != "++" &&
+                  mFunctionList[i].tokenList[j + 1].tokenString != "--" &&
+                  mFunctionList[i].tokenList[j + 1].tokenString != "," ) cout << " ";
+
+        next++;
       } // end for
 
       cout << endl;
@@ -3004,7 +3126,7 @@ int main() {
   parser.mScanner.CurInit();
   parser.Init();
   while ( parser.IsUserInput() ) {
-    printf( "> " );
+    ;
   } // while
   
   printf( "Our-C exited ..." ) ;

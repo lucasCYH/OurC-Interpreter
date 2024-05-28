@@ -1030,6 +1030,8 @@ bool Parser::IsUserInput() {
     if ( msg == "EOF" || msg == "Done" )
       return false;
 
+    cout << mJustPeek << endl;
+    if ( mJustPeek ) StatementOp();
     string num = msg.substr( msg.length() - 2, 2 );
     if ( num == "79" ) cout << "Line " << 
                             mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum << " : ";
@@ -1918,6 +1920,7 @@ bool Parser::StatementIf() {
     
     
     mScanner.GetToken();
+    
 
     if ( mScanner.mToken.tokenType == ELSE ) {
       mToken = mScanner.mToken;
@@ -2132,6 +2135,8 @@ void Parser::BasicExpression() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'39";
       throw ( errorMsg );
     } // end else
+
+    if ( mToken.tokenType == RP || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
 
     RomceAndRomloe();
   } // end if
@@ -4042,7 +4047,7 @@ void Parser::BasicExpressionOp( string &result ) {
       throw ( errorMsg );
     } // end else
 
-    // if ( mScanner.mTokenList[mCur].tokenType == RP || mScanner.mTokenList[mCur].tokenType == MRP ) mCur++;
+    if ( mScanner.mTokenList[mCur].tokenType == RP || mScanner.mTokenList[mCur].tokenType == MRP ) mCur++;
 
     RomceAndRomloeOp( result );
   } // end if

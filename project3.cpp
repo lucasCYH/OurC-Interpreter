@@ -10,18 +10,18 @@
 using namespace std;
 
 enum TokenType {
-  ID, CONSTANT, 
+  ID, CONSTANT,
   INT, FLOAT, CHAR, BOOL, STRING, VOID,
   IF, ELSE, WHILE, DO, RETURN, CIN, COUT,
   LP, RP, MLP, MRP, BLP, BRP, // (), [], {}
-  ADD, SUB, MULT, DIV, REM,  // +, -, *, /, %  
+  ADD, SUB, MULT, DIV, REM,  // +, -, *, /, %
   BITAND, BITOR, BITXOR, BITNOT,  // &, |, ^, !
   EQ, NEQ, LSS, LE, GTR, GE, LS, RS,  // ==, !=, <, <=, >, >=, <<, >>
   AND, OR, PE, ME, TE, DE, RE, PP, MM, // &&, ||, +=, -=, *=, /=, %=, ++, --
   SCLN, COMMA, QUE, COLON, ASSIGN, // ';', ',', '?', ':', '='
   ADDORSIGN, SUBORSIGN, // + & -
   INPUTBUFFERAPPEND, ENDINPUTBUFFERAPPEND,
-  NONE, END_OF_FILE, COMMENT  // ?™è??­l?™è???
+  NONE, END_OF_FILE, COMMENT  // ?â„¢Ã¨??Â­l?â„¢Ã¨???
 };
 
 struct Token {
@@ -51,7 +51,7 @@ struct Declarators {
 };
 
 bool VariableCompare( Variable a, Variable b ) {
-  return a.name > b.name; // ?™è??­å?è¤’æ???
+  return a.name > b.name; // ?â„¢Ã¨??Â­Ã¥?Ã¨Â¤â€™Ã¦???
 } // VariableCompare()
 
 bool FunctionCompare( Function a, Function b ) {
@@ -77,20 +77,20 @@ int StringToInt( string str ) {
 
 string IntToString( int num ) {
   if ( num == 0 ) return "0";
-  
+
   string res = "";
   bool neg = false;
   if ( num < 0 ) {
     neg = true;
     num = -num;
   } // end if
-  
+
   while ( num != 0 ) {
     char ch = ( '0' +  ( num % 10 ) );
     res = ch + res;
     num = num / 10;
   } // end while
-  
+
   if ( neg ) return ( "-" + res );
   else return res;
 } // IntToString()
@@ -158,7 +158,7 @@ bool FindDigitPoint( string result ) {
   } // end for
 
   return false;
-  
+
 } // FindDigitPoint()
 
 class Scanner {
@@ -174,9 +174,9 @@ class Scanner {
   void SkipErrorLine() ;
   void CurInit() ;
   void Init() ;
-   
+
   private:
-      
+
   char mCur;
   bool mGetToken;
   void TokenInit() ;
@@ -214,39 +214,39 @@ void Scanner::TokenInit() {
   mToken.tokenString = "";
   mToken.tokenType = NONE;
 } // Scanner::TokenInit()
-   
+
 int Scanner::GetNextChar() {
   int n = scanf( "%c", &mCur );
   if ( n == 0 ) mCur = '\0';
   return n;
 } // Scanner::GetNextChar()
-   
+
 void Scanner::SkipWhiteSpace() {
   int checkInput;
   if ( mCur == '\n' ) {
     mCurLine++;
   } // end if
-  
+
   checkInput = GetNextChar();
-   
+
   while ( checkInput != 0 &&  ( mCur == ' ' || mCur == '\t' || mCur == '\n' ) ) {
     if ( mCur == '\n' ) {
       mCurLine++;
     } // end if
-         
+
     checkInput = GetNextChar();
-         
+
     if ( checkInput == 0 ) {
       mCur = '\0';
     } // end if
   } // while
-      
+
   return;
 } // Scanner::SkipWhiteSpace()
-   
+
 void Scanner::SkipLineComment() {
   int checkInput;
-   
+
   while ( checkInput != 0 && mCur != '\n' ) {
     checkInput = GetNextChar();
     if ( checkInput == 0 ) {
@@ -256,31 +256,31 @@ void Scanner::SkipLineComment() {
 
   return;
 } // Scanner::SkipLineComment()
-   
+
 void Scanner::SkipMultiLineComment() {
   int checkInput;
   bool end = false;
   checkInput = GetNextChar();
-      
+
   while ( checkInput != 0 && ( ! end ) ) {
     if ( mCur == '\n' ) {
       mCurLine++;
     } // end if
-         
+
     if ( mCur == '*' ) {
       checkInput = GetNextChar();
       if ( checkInput != 0 && mCur == '/' ) {
         end = true;
       } // end if
     } // end if
-         
+
     if ( ! end ) checkInput = GetNextChar();
   } // while()
-  
+
   GetNextChar();
   return;
 } // Scanner::SkipMultiLineComment()
-   
+
 Token Scanner::GetToken() {
   TokenInit();
   mGetToken = false;
@@ -290,20 +290,20 @@ Token Scanner::GetToken() {
       mToken.tokenType = END_OF_FILE;
       return mToken;
     } // end if
-  
 
-      
+
+
     if ( mCur == ' ' || mCur == '\t' || mCur == '\n' || mCur == '\r' ) {
       SkipWhiteSpace();
     } // end if
-  
+
     if ( mCur == '\0' ) {
       mToken.tokenType = END_OF_FILE;
       return mToken;
     } // end if
- 
+
     mToken.lineNum = mCurLine;
-  
+
     if ( mCur == '_' || ( mCur >= 'a' && mCur <= 'z' ) || ( mCur >= 'A' && mCur <= 'Z' ) ) {
       GetID();
       mToken.tokenType = ID;
@@ -321,7 +321,7 @@ Token Scanner::GetToken() {
       mToken.tokenType = CONSTANT;
     } // end if
     else if ( mCur == '(' || mCur == ')' || mCur == '[' || mCur == ']' || mCur == '{' || mCur == '}' ) {
-      GetParentheses();   
+      GetParentheses();
     } // end if
     else if ( mCur == '+' || mCur == '-' || mCur == '*' || mCur == '/' || mCur == '%' ) {
       GetArithmeticOp();
@@ -345,9 +345,9 @@ Token Scanner::GetToken() {
       throw ( errorMsg );
     } // end else
   } // end while
-  
-  
-  
+
+
+
   if ( mToken.tokenType == ID ) CheckReservedWords();
 
   mTokenList.push_back( mToken );
@@ -358,12 +358,12 @@ void Scanner::GetID() {
   mToken.tokenString += mCur;
   int checkInput = GetNextChar();
   bool end = false;
-   
-  while ( ( ! end ) && ( ( mCur >= 'a' && mCur <= 'z' ) || 
-                         ( mCur >= 'A' && mCur <= 'Z' ) || 
-                         ( mCur >= '0' && mCur <= '9' ) || 
+
+  while ( ( ! end ) && ( ( mCur >= 'a' && mCur <= 'z' ) ||
+                         ( mCur >= 'A' && mCur <= 'Z' ) ||
+                         ( mCur >= '0' && mCur <= '9' ) ||
                          mCur == '_' )  ) {
-            
+
     if ( checkInput == 0 ) {
       end = true;
     } // end if
@@ -372,9 +372,9 @@ void Scanner::GetID() {
       mToken.tokenString += mCur;
       checkInput = GetNextChar();
     } // end if
-    
+
   } // while()
-   
+
 } // Scanner::GetID()
 
 void Scanner::GetNumber() {
@@ -383,7 +383,7 @@ void Scanner::GetNumber() {
   bool hasPoint = false;
   if ( mCur == '.' ) hasPoint = true;
   int checkInput = GetNextChar();
-      
+
   while ( ( ! end ) && ( ( mCur >= '0' && mCur <= '9' ) || mCur == '.' )  ) {
     if ( checkInput == 0 ) {
       end = true;
@@ -397,38 +397,38 @@ void Scanner::GetNumber() {
       checkInput = GetNextChar();
     } // end if
 
-    
+
 
   } // while()
-   
+
 } // Scanner::GetNumber()
 
 void Scanner::GetDoubleQuote() {
   bool end = false;
   mToken.tokenString += mCur;
   int checkInput = GetNextChar();
-   
+
   while ( ( ! end ) && mCur != '\"' ) {
     if ( checkInput == 0 ) {
       end = true;
     } // end if
-      
+
     if ( ! end ) {
       mToken.tokenString += mCur;
       checkInput = GetNextChar();
     } // end if
-    
+
   } // while()
 
   mToken.tokenString += mCur;
-  checkInput = GetNextChar(); // skip the double quote  
+  checkInput = GetNextChar(); // skip the double quote
 } // Scanner::GetDoubleQuote()
-   
+
 void Scanner::GetSingleQuote() {
   mToken.tokenString += mCur;
   bool end = false;
   int checkInput = GetNextChar();
-   
+
   while ( ( ! end ) && mCur != '\'' ) {
     if ( checkInput == 0 ) {
       end = true;
@@ -438,14 +438,14 @@ void Scanner::GetSingleQuote() {
       mToken.tokenString += mCur;
       checkInput = GetNextChar();
     } // end if
-    
+
   } // while()
 
   checkInput = GetNextChar(); // skip the single quote
-  mToken.tokenString += mCur; 
-  return;   
+  mToken.tokenString += mCur;
+  return;
 } // Scanner::GetSingleQuote()
-   
+
 void Scanner::GetParentheses() {
   if ( mCur == '(' ) {
     mToken.tokenString += mCur;
@@ -471,20 +471,20 @@ void Scanner::GetParentheses() {
     mToken.tokenString += mCur;
     mToken.tokenType = BRP;
   } // end if
-   
+
   GetNextChar();
   return;
 } // Scanner::GetParentheses()
-   
+
 void Scanner::GetArithmeticOp() {
-       
+
   int checkInput;
-      
+
   if ( mCur == '+' ) {
     mToken.tokenString += mCur;
-        
+
     checkInput = GetNextChar();
-         
+
     if ( checkInput == 0 ) {
       mToken.tokenType = ADD;
       return;
@@ -500,14 +500,14 @@ void Scanner::GetArithmeticOp() {
     else {
       mToken.tokenType = ADD;
     } // else
-      
+
     if ( mToken.tokenType != ADD ) GetNextChar();
   } // end if
   else if ( mCur == '-' ) {
     mToken.tokenString += mCur;
-         
+
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = SUB;
       return;
@@ -523,14 +523,14 @@ void Scanner::GetArithmeticOp() {
     else {
       mToken.tokenType = SUB;
     } // else
-      
+
     if ( mToken.tokenType != SUB ) GetNextChar();
   } // end if
   else if ( mCur == '*' ) {
     mToken.tokenString += mCur;
-      
+
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = MULT;
       return;
@@ -542,14 +542,14 @@ void Scanner::GetArithmeticOp() {
     else {
       mToken.tokenType = MULT;
     } // else
-      
+
     if ( mToken.tokenType != MULT ) GetNextChar();
   } // end if
   else if ( mCur == '/' ) {
     mToken.tokenString += mCur;
-     
+
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = DIV;
       return;
@@ -573,14 +573,14 @@ void Scanner::GetArithmeticOp() {
     else {
       mToken.tokenType = DIV;
     } // else
-      
+
     if ( mToken.tokenType != DIV ) GetNextChar();
   } // end if
   else if ( mCur == '%' ) {
     mToken.tokenString += mCur;
-      
+
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = REM;
       return;
@@ -592,18 +592,18 @@ void Scanner::GetArithmeticOp() {
     else {
       mToken.tokenType = REM;
     } // else
-      
+
     if ( mToken.tokenType != REM ) GetNextChar();
   } // end if
-   
+
   return;
 } // Scanner::GetArithmeticOp()
-   
+
 void Scanner::GetBitOp() {
   mToken.tokenString += mCur;
-      
-  int checkInput;   
-      
+
+  int checkInput;
+
   if ( mCur == '^' ) {
     mToken.tokenType = BITXOR;
     GetNextChar();
@@ -626,7 +626,7 @@ void Scanner::GetBitOp() {
   } // end if
   else if ( mCur == '|' ) {
     checkInput = GetNextChar();
- 
+
     if ( checkInput == 0 ) {
       mToken.tokenType = BITOR;
       return;
@@ -644,15 +644,15 @@ void Scanner::GetBitOp() {
 
   return;
 } // Scanner::GetBitOp()
-   
+
 void Scanner::GetCompareOp() {
   mToken.tokenString += mCur;
-  int checkInput;   
-      
-      
+  int checkInput;
+
+
   if ( mCur == '>' ) {
     checkInput = GetNextChar();
-         
+
     if ( checkInput == 0 ) {
       mToken.tokenType = GTR;
       return;
@@ -673,7 +673,7 @@ void Scanner::GetCompareOp() {
   } // end if
   else if ( mCur == '<' ) {
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = LSS;
       return;
@@ -694,7 +694,7 @@ void Scanner::GetCompareOp() {
   } // end if
   else if ( mCur == '=' ) {
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = ASSIGN;
       return;
@@ -710,7 +710,7 @@ void Scanner::GetCompareOp() {
   }  // end if
   else if ( mCur == '!' ) {
     checkInput = GetNextChar();
-      
+
     if ( checkInput == 0 ) {
       mToken.tokenType = BITNOT;
       return;
@@ -725,10 +725,10 @@ void Scanner::GetCompareOp() {
     } // else
   } // end if
 } // Scanner::GetCompareOp()
-   
+
 void Scanner::GetOtherSpecial() {
   mToken.tokenString += mCur;
-      
+
   if ( mCur == ';' ) {
     mToken.tokenType = SCLN;
   } // end if
@@ -741,7 +741,7 @@ void Scanner::GetOtherSpecial() {
   else if ( mCur == ':' ) {
     mToken.tokenType = COLON;
   } // end if
-   
+
   GetNextChar();
 } // Scanner::GetOtherSpecial()
 
@@ -837,12 +837,12 @@ class Parser {
   vector<Function> mFunctionList;
   vector<Declarators> mDeclaratorsList;
 
-  
+
   void ListFunction( string name ) ;
   void ListVariable( string name ) ;
   void ListAllVariables() ;
   void ListAllFunctions() ;
-  
+
   bool IsDefOrStatement() ;
   void UserInput() ;
   void GetFirstToken() ;
@@ -896,7 +896,7 @@ class Parser {
   void UnaryExp() ;
   void SignedUnaryExp() ;
   void UnsignedUnaryExp() ;
-  
+
 
   int FindVariable( string name, bool printError ) ;
   int FindArrayVariable( string name, string num ) ;
@@ -1030,10 +1030,8 @@ bool Parser::IsUserInput() {
     if ( msg == "EOF" || msg == "Done" )
       return false;
 
-    cout << mJustPeek << endl;
-    if ( mJustPeek ) StatementOp();
     string num = msg.substr( msg.length() - 2, 2 );
-    if ( num == "79" ) cout << "Line " << 
+    if ( num == "79" ) cout << "Line " <<
                             mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum << " : ";
     else cout << "Line " << mScanner.mTokenList[mScanner.mTokenList.size() - 1].lineNum << " : ";
 
@@ -1050,7 +1048,7 @@ bool Parser::IsUserInput() {
         GetFirstToken();
       } // end if
       else { // hold the token
-        mToken.lineNum = mToken.lineNum - 
+        mToken.lineNum = mToken.lineNum -
                             mScanner.mTokenList[mScanner.mTokenList.size() - 2].lineNum;
         mScanner.mToken.lineNum = mScanner.mCurLine = mToken.lineNum;
         mScanner.mTokenList.clear();
@@ -1082,7 +1080,7 @@ bool Parser::IsUserInput() {
   GetFirstToken();
   mRegion = 0;
   RemoveVariables();
-    
+
 
   if ( DEBUG ) cout << "The grammer is correct" << endl;
   return true;
@@ -1092,16 +1090,16 @@ void Parser::UserInput() {
   // Token curToken = mScanner.GetMemberToken();
   if ( DEBUG ) cout << "UserInput" << endl;
 
-  
-  
+
+
   if ( mToken.tokenType == END_OF_FILE ) {
     throw ( "EOF" );
   } // end if
-  else if ( mToken.tokenType == VOID || 
-            mToken.tokenType == INT || 
-            mToken.tokenType == CHAR || 
-            mToken.tokenType == FLOAT || 
-            mToken.tokenType == STRING || 
+  else if ( mToken.tokenType == VOID ||
+            mToken.tokenType == INT ||
+            mToken.tokenType == CHAR ||
+            mToken.tokenType == FLOAT ||
+            mToken.tokenType == STRING ||
             mToken.tokenType == BOOL ) { // the first type of definition
     Definition( false );
     DefinitionOp( false );
@@ -1115,7 +1113,7 @@ void Parser::UserInput() {
             mToken.tokenType == CONSTANT ||
             mToken.tokenType == RETURN ||
             mToken.tokenType == BLP ||
-            mToken.tokenType == IF || 
+            mToken.tokenType == IF ||
             mToken.tokenType == WHILE ||
             mToken.tokenType == DO ||
             mToken.tokenType == SCLN ||
@@ -1132,7 +1130,7 @@ void Parser::UserInput() {
     throw ( errorMsg );
   } // end else
 
-  if ( DEBUG ) cout << "end of UserInput" << endl; 
+  if ( DEBUG ) cout << "end of UserInput" << endl;
 } // Parser::UserInput()
 
 void Parser::Definition( bool isBLP ) {
@@ -1145,7 +1143,7 @@ void Parser::Definition( bool isBLP ) {
     } // end if
     else if ( mToken.tokenType == ID ) {
       mToken = mScanner.GetToken();
-      if ( mToken.tokenType == LP ) FunctionDefinitionWithoutID(); 
+      if ( mToken.tokenType == LP ) FunctionDefinitionWithoutID();
       else {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'02";
         throw ( errorMsg );
@@ -1156,12 +1154,12 @@ void Parser::Definition( bool isBLP ) {
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mToken.tokenType == INT || 
-            mToken.tokenType == CHAR || 
-            mToken.tokenType == FLOAT || 
-            mToken.tokenType == STRING || 
+  else if ( mToken.tokenType == INT ||
+            mToken.tokenType == CHAR ||
+            mToken.tokenType == FLOAT ||
+            mToken.tokenType == STRING ||
             mToken.tokenType == BOOL ) {
-              
+
     string type = mToken.tokenString;
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
@@ -1169,13 +1167,13 @@ void Parser::Definition( bool isBLP ) {
       throw ( error );
     } // end if
     else if ( mToken.tokenType == ID ) {
-      FunctionDefinitionOrDeclarators( type, mToken.tokenString, isBLP ); 
+      FunctionDefinitionOrDeclarators( type, mToken.tokenString, isBLP );
     } // end if
     else {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'03";
       throw ( errorMsg );
     } // end else
-    
+
   } // end if
   else {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'04";
@@ -1197,7 +1195,7 @@ void Parser::TypeSpecifier() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'05";
     throw ( errorMsg );
   } // end if
-  
+
   if ( DEBUG ) cout << "end of TypeSpecifier" << endl;
 } // Parser::TypeSpecifier()
 
@@ -1209,9 +1207,9 @@ void Parser::FunctionDefinitionOrDeclarators( string type, string name, bool isB
     throw ( error );
   } // end if
   else if ( mToken.tokenType == LP ) {
-    
+
     // record the type and name of the function
-    
+
     FunctionDefinitionWithoutID();
   } // end if
   else if ( mToken.tokenType == MLP || mToken.tokenType == SCLN || mToken.tokenType == COMMA ) {
@@ -1316,7 +1314,7 @@ void Parser::RestOfDeclarators( string variableType, string variableName, bool i
       } // end else
     } // end while
   } // end if
-  
+
   if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
@@ -1338,10 +1336,10 @@ void Parser::FunctionDefinitionWithoutID() {
     string error = "EOF";
     throw ( error );
   } // end if
-  else if ( mToken.tokenType == INT || 
-            mToken.tokenType == CHAR || 
-            mToken.tokenType == FLOAT || 
-            mToken.tokenType == STRING || 
+  else if ( mToken.tokenType == INT ||
+            mToken.tokenType == CHAR ||
+            mToken.tokenType == FLOAT ||
+            mToken.tokenType == STRING ||
             mToken.tokenType == BOOL ) {
     FormalParameterList();
   } // end if
@@ -1363,13 +1361,13 @@ void Parser::FunctionDefinitionWithoutID() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'14";
     throw ( errorMsg );
   } // end else
-  
+
   FunctionDefinitionWithoutIDOp();
   mRegion = 0;
   mThreshold = mRegion;
   RemoveVariables();
-  
-  
+
+
   if ( DEBUG ) cout << "end of FunctionDefinitionWithoutID" << endl;
 } // Parser::FunctionDefinitionWithoutID()
 
@@ -1383,12 +1381,12 @@ void Parser::FormalParameterList() {
     string error = "EOF";
     throw ( error );
   } // end if
-  
-  
+
+
   if ( mToken.tokenType == BITAND ) { // check for '&'
     mToken = mScanner.GetToken();
   } // end if
-  
+
   if ( mToken.tokenType != ID ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'15";
     throw ( errorMsg );
@@ -1432,18 +1430,18 @@ void Parser::FormalParameterList() {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   while ( mToken.tokenType == COMMA ) {
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
-    if ( mToken.tokenType != INT && 
-         mToken.tokenType != CHAR && 
-         mToken.tokenType != FLOAT && 
-         mToken.tokenType != STRING && 
+
+    if ( mToken.tokenType != INT &&
+         mToken.tokenType != CHAR &&
+         mToken.tokenType != FLOAT &&
+         mToken.tokenType != STRING &&
          mToken.tokenType != BOOL ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'18";
       throw ( errorMsg );
@@ -1451,13 +1449,13 @@ void Parser::FormalParameterList() {
     else {
       temp.type = mToken.tokenString;
     } // end else
-           
+
     mToken = mScanner.GetToken();
-  
+
     if ( mToken.tokenType == BITAND ) { // check for '&' (optional)
       mToken = mScanner.GetToken();
     } // end if
-      
+
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
@@ -1517,14 +1515,14 @@ void Parser::CompoundStatement() {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   if ( IsDefOrStatement() ) {
     while ( IsDefOrStatement() ) {
-           
-      if ( mToken.tokenType == INT || 
-           mToken.tokenType == CHAR || 
-           mToken.tokenType == FLOAT || 
-           mToken.tokenType == STRING || 
+
+      if ( mToken.tokenType == INT ||
+           mToken.tokenType == CHAR ||
+           mToken.tokenType == FLOAT ||
+           mToken.tokenType == STRING ||
            mToken.tokenType == BOOL ) {
         Declaration( true );
       } // end if
@@ -1537,7 +1535,7 @@ void Parser::CompoundStatement() {
                 mToken.tokenType == CONSTANT ||
                 mToken.tokenType == RETURN ||
                 mToken.tokenType == BLP ||
-                mToken.tokenType == IF || 
+                mToken.tokenType == IF ||
                 mToken.tokenType == WHILE ||
                 mToken.tokenType == DO ||
                 mToken.tokenType == SCLN ||
@@ -1547,7 +1545,7 @@ void Parser::CompoundStatement() {
 
         Statement();
       } // end if
-      
+
       if ( ! mJustPeek ) mToken = mScanner.GetToken();
       else {
         mToken = mScanner.mToken;
@@ -1558,10 +1556,10 @@ void Parser::CompoundStatement() {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
     } // end while
   } // end if
-  
+
   if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
@@ -1574,7 +1572,7 @@ void Parser::CompoundStatement() {
     mRegion--;
     RemoveVariables();
   } // end else
-  
+
   if ( DEBUG ) cout << "end of CompoundStatement" << endl;
   mLastStatementIf = false;
 } // Parser::CompoundStatement()
@@ -1588,7 +1586,7 @@ void Parser::Declaration( bool isBLP ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   if ( mToken.tokenType == ID ) {
     name = mToken.tokenString;
     mToken = mScanner.GetToken();
@@ -1597,7 +1595,7 @@ void Parser::Declaration( bool isBLP ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'24";
     throw ( errorMsg );
   } // end else
-  
+
   if ( mToken.tokenType == MLP || mToken.tokenType == SCLN || mToken.tokenType == COMMA ) {
     RestOfDeclarators( type, name, isBLP );
   } // end if
@@ -1605,16 +1603,16 @@ void Parser::Declaration( bool isBLP ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'25";
     throw ( errorMsg );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of Declaration" << endl;
 } // Parser::Declaration()
 
 void Parser::Statement() {
   if ( DEBUG ) cout << "Statement" << endl;
   mLastStatementIf = false;
-  
+
   if ( DEBUG ) cout << mToken.tokenString << mIfStatement << endl;
-  
+
   if ( mToken.tokenType == SCLN ) ; // condition 1
   else if ( mToken.tokenType == ID ||
             mToken.tokenType == PP ||
@@ -1626,7 +1624,7 @@ void Parser::Statement() {
             mToken.tokenType == LP ) { // condition 2
 
     Expression();
-    
+
     if ( mToken.tokenType != SCLN ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'26";
       throw ( errorMsg );
@@ -1638,7 +1636,7 @@ void Parser::Statement() {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mToken.tokenType == ID ||
          mToken.tokenType == PP ||
          mToken.tokenType == MM ||
@@ -1647,10 +1645,10 @@ void Parser::Statement() {
          mToken.tokenType == BITNOT ||
          mToken.tokenType == CONSTANT ||
          mToken.tokenType == LP ) {
-      
+
       Expression();
     } // end if
-    
+
     if ( mToken.tokenType != SCLN ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'27";
       throw ( errorMsg );
@@ -1686,7 +1684,7 @@ void Parser::Statement() {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       if ( mToken.tokenType == LP ) {
         mToken = mScanner.GetToken();
         if ( mToken.tokenType == END_OF_FILE ) {
@@ -1712,7 +1710,7 @@ void Parser::Statement() {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'34";
           throw ( errorMsg );
         } // end else
-    
+
         if ( mToken.tokenType != RP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'35";
           throw ( errorMsg );
@@ -1722,7 +1720,7 @@ void Parser::Statement() {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'29";
         throw ( errorMsg );
       } // end else
-      
+
       mToken = mScanner.GetToken();
       if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
@@ -1742,7 +1740,7 @@ void Parser::Statement() {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     Statement();
   } // end if
   else if ( mToken.tokenType == COUT ) {
@@ -1764,7 +1762,7 @@ void Parser::Statement() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'3'";
     throw ( errorMsg );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of Statement" << endl;
 } // Parser::Statement()
 
@@ -1858,7 +1856,7 @@ bool Parser::StatementIf() {
     string error = "EOF";
     throw ( error );
   } // end if
-    
+
   if ( mToken.tokenType == LP ) {
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
@@ -1872,7 +1870,7 @@ bool Parser::StatementIf() {
          mToken.tokenType == ADD ||
          mToken.tokenType == SUB ||
          mToken.tokenType == BITNOT ||
-         mToken.tokenType == CONSTANT || 
+         mToken.tokenType == CONSTANT ||
          mToken.tokenType == LP ) {
       Expression();
     } // end if
@@ -1883,12 +1881,12 @@ bool Parser::StatementIf() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'31";
       throw ( errorMsg );
     } // end else
-    
+
     if ( mToken.tokenType != RP ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'32";
       throw ( errorMsg );
     } // end if
-    
+
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
@@ -1904,7 +1902,7 @@ bool Parser::StatementIf() {
          mToken.tokenType == CONSTANT ||
          mToken.tokenType == RETURN ||
          mToken.tokenType == BLP ||
-         mToken.tokenType == IF || 
+         mToken.tokenType == IF ||
          mToken.tokenType == WHILE ||
          mToken.tokenType == DO ||
          mToken.tokenType == SCLN ||
@@ -1917,10 +1915,9 @@ bool Parser::StatementIf() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'33";
       throw ( errorMsg );
     } // end else
-    
-    
+
+
     mScanner.GetToken();
-    
 
     if ( mScanner.mToken.tokenType == ELSE ) {
       mToken = mScanner.mToken;
@@ -1948,7 +1945,7 @@ void Parser::StatementWhile() {
     string error = "EOF";
     throw ( error );
   } // end if
-    
+
   if ( mToken.tokenType == LP ) {
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
@@ -1974,18 +1971,18 @@ void Parser::StatementWhile() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'34";
       throw ( errorMsg );
     } // end else
-    
+
     if ( mToken.tokenType != RP ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'35";
       throw ( errorMsg );
     } // end if
-    
+
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mToken.tokenType == ID ||
          mToken.tokenType == PP ||
          mToken.tokenType == MM ||
@@ -1995,7 +1992,7 @@ void Parser::StatementWhile() {
          mToken.tokenType == CONSTANT ||
          mToken.tokenType == RETURN ||
          mToken.tokenType == BLP ||
-         mToken.tokenType == IF || 
+         mToken.tokenType == IF ||
          mToken.tokenType == WHILE ||
          mToken.tokenType == DO ||
          mToken.tokenType == SCLN ||
@@ -2013,16 +2010,16 @@ void Parser::StatementWhile() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'31";
     throw ( errorMsg );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of StatementWhile" << endl;
 } // Parser::StatementWhile()
 
 bool Parser::IsDefOrStatement() {
   if ( DEBUG ) cout << "IsDefOrStatement" << endl;
-  return ( mToken.tokenType == INT || 
-           mToken.tokenType == CHAR || 
-           mToken.tokenType == FLOAT || 
-           mToken.tokenType == STRING || 
+  return ( mToken.tokenType == INT ||
+           mToken.tokenType == CHAR ||
+           mToken.tokenType == FLOAT ||
+           mToken.tokenType == STRING ||
            mToken.tokenType == BOOL ||
            mToken.tokenType == ID ||
            mToken.tokenType == PP ||
@@ -2033,7 +2030,7 @@ bool Parser::IsDefOrStatement() {
            mToken.tokenType == CONSTANT ||
            mToken.tokenType == RETURN ||
            mToken.tokenType == BLP ||
-           mToken.tokenType == IF || 
+           mToken.tokenType == IF ||
            mToken.tokenType == WHILE ||
            mToken.tokenType == DO ||
            mToken.tokenType == SCLN ||
@@ -2045,7 +2042,7 @@ bool Parser::IsDefOrStatement() {
 void Parser::Expression() {
   if ( DEBUG ) cout << "Expression" << endl;
   BasicExpression();
-  
+
   if ( mToken.tokenType == COMMA ) {
     while ( mToken.tokenType == COMMA ) {
       mToken = mScanner.GetToken();
@@ -2053,7 +2050,7 @@ void Parser::Expression() {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       if ( mToken.tokenType == ID ||
            mToken.tokenType == PP ||
            mToken.tokenType == MM ||
@@ -2064,14 +2061,14 @@ void Parser::Expression() {
            mToken.tokenType == LP ) {
         BasicExpression();
       } // end if
-      
+
       if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
     } // end while
   } // end if
-  
+
   if ( DEBUG ) cout << "end of Expression" << endl;
 } // Parser::Expression()
 
@@ -2081,11 +2078,11 @@ void Parser::BasicExpression() {
     // FindVariable( mToken.tokenString, true );
     string name = mToken.tokenString;
     mToken = mScanner.GetToken();
-    if ( mToken.tokenType == END_OF_FILE ) { 
+    if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     RestOfIDStartedBasicExp( name );
   } // end if
   else if ( mToken.tokenType == PP || mToken.tokenType == MM ) { // condition 2
@@ -2094,7 +2091,7 @@ void Parser::BasicExpression() {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mToken.tokenType == ID ) {
       FindVariable( mToken.tokenString, true );
       mToken = mScanner.GetToken();
@@ -2102,7 +2099,7 @@ void Parser::BasicExpression() {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       RestOfPPMMIDStartedBasicExp();
     } // end if
     else {
@@ -2110,14 +2107,14 @@ void Parser::BasicExpression() {
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mToken.tokenType == ADD || mToken.tokenType == SUB || 
+  else if ( mToken.tokenType == ADD || mToken.tokenType == SUB ||
             mToken.tokenType == BITNOT ) { // condition 3
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     while ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
       mToken = mScanner.GetToken();
       if ( mToken.tokenType == END_OF_FILE ) {
@@ -2125,18 +2122,17 @@ void Parser::BasicExpression() {
         throw ( error );
       } // end if
     } // end while
-    
-    if ( mToken.tokenType == ID || mToken.tokenType == CONSTANT || 
+
+    if ( mToken.tokenType == ID || mToken.tokenType == CONSTANT ||
          mToken.tokenType == LP ) {
       SignedUnaryExp();
-      // if ( mToken.tokenType == RP || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
+
+      if ( mToken.tokenType == RP || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
     } // end if
     else {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'39";
       throw ( errorMsg );
     } // end else
-
-    if ( mToken.tokenType == RP || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
 
     RomceAndRomloe();
   } // end if
@@ -2148,7 +2144,7 @@ void Parser::BasicExpression() {
         string error = "EOF";
         throw ( error );
       } // end if
-    
+
       if ( mToken.tokenType == ID ||
            mToken.tokenType == PP ||
            mToken.tokenType == MM ||
@@ -2164,33 +2160,33 @@ void Parser::BasicExpression() {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'40";
         throw ( errorMsg );
       } // end else
-      
+
       if ( mToken.tokenType != RP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'41";
         throw ( errorMsg );
       } // end if
       else mIsInLP--;
     } // end if
-  
+
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
-    } // end if	
+    } // end if
 
     RomceAndRomloe();
   } // end if
-  
+
   if ( DEBUG ) cout << "end of BasicExpression" << endl;
 } // Parser::BasicExpression()
 
 void Parser::RestOfIDStartedBasicExp( string name ) {
   if ( DEBUG ) cout << "RestOfIDStartedBasicExp" << endl;
-  if ( mToken.tokenType == MLP || mToken.tokenType == ASSIGN || 
-       mToken.tokenType == TE || mToken.tokenType == DE || 
-       mToken.tokenType == RE || mToken.tokenType == PE || 
+  if ( mToken.tokenType == MLP || mToken.tokenType == ASSIGN ||
+       mToken.tokenType == TE || mToken.tokenType == DE ||
+       mToken.tokenType == RE || mToken.tokenType == PE ||
        mToken.tokenType == ME || mToken.tokenType == PP ||
-       mToken.tokenType == MM || mToken.tokenType == ADD || 
+       mToken.tokenType == MM || mToken.tokenType == ADD ||
        mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
        mToken.tokenType == ID || mToken.tokenType == CONSTANT ) { // condition 1
 
@@ -2201,7 +2197,7 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
         string error = "EOF";
         throw ( error );
       } // end if
-    
+
       if ( mToken.tokenType == ID ||
            mToken.tokenType == PP ||
            mToken.tokenType == MM ||
@@ -2217,7 +2213,7 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'42";
         throw ( errorMsg );
       } // end else
-    
+
       if ( mToken.tokenType != MRP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'43";
         throw ( errorMsg );
@@ -2226,9 +2222,9 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
         mToken = mScanner.GetToken();
       } // end else
     } // end if
-    
-    if ( mToken.tokenType == ASSIGN || mToken.tokenType == TE || 
-         mToken.tokenType == DE || mToken.tokenType == RE || 
+
+    if ( mToken.tokenType == ASSIGN || mToken.tokenType == TE ||
+         mToken.tokenType == DE || mToken.tokenType == RE ||
          mToken.tokenType == PE || mToken.tokenType == ME ) {
 
       FindVariable( name, true );
@@ -2237,7 +2233,7 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       if ( mToken.tokenType == ID || mToken.tokenType == PP ||
            mToken.tokenType == MM || mToken.tokenType == ADD ||
            mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
@@ -2263,13 +2259,13 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mToken.tokenType == ID || mToken.tokenType == PP ||
          mToken.tokenType == MM || mToken.tokenType == ADD ||
          mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
          mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
       ActualParameterList();
-      
+
     } // end if
 
     if ( mToken.tokenType == RP ) {
@@ -2296,7 +2292,7 @@ void Parser::RestOfIDStartedBasicExp( string name ) {
     FindVariable( name, true );
     RomceAndRomloe();
   } // end else
-  
+
   if ( DEBUG ) cout << "end of RestOfIDStartedBasicExp" << endl;
 } // Parser::RestOfIDStartedBasicExp()
 
@@ -2308,7 +2304,7 @@ void Parser::RestOfPPMMIDStartedBasicExp() {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mToken.tokenType == ID ||
          mToken.tokenType == PP ||
          mToken.tokenType == MM ||
@@ -2319,17 +2315,17 @@ void Parser::RestOfPPMMIDStartedBasicExp() {
          mToken.tokenType == ID ||
          mToken.tokenType == LP ) {
       Expression();
-      
-      
+
+
       if ( mToken.tokenType == MRP ) {
         mToken = mScanner.GetToken();
         if ( mToken.tokenType == END_OF_FILE ) {
           string error = "EOF";
           throw ( error );
         } // end if
-        
+
         if ( mToken.tokenType == PP || mToken.tokenType == LP ||
-             mToken.tokenType == MM || mToken.tokenType == ADD || 
+             mToken.tokenType == MM || mToken.tokenType == ADD ||
              mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
              mToken.tokenType == ID || mToken.tokenType == CONSTANT ) {
 
@@ -2353,7 +2349,7 @@ void Parser::RestOfPPMMIDStartedBasicExp() {
   else {
     RomceAndRomloe();
   } // end else
-  
+
   if ( DEBUG ) cout << "end of RestOfPPMMIDStartedBasicExp" << endl;
 } // Parser::RestOfPPMMIDStartedBasicExp() ;
 
@@ -2368,7 +2364,7 @@ void Parser::Sign() {
 void Parser::ActualParameterList() {
   if ( DEBUG ) cout << "ActualParameterList" << endl;
   BasicExpression();
-  
+
   while ( mToken.tokenType == COMMA ) {
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
@@ -2386,16 +2382,16 @@ void Parser::ActualParameterList() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'51";
       throw ( errorMsg );
     } // end else
-    
+
 
   } // end while
-  
+
   if ( DEBUG ) cout << "end of ActualParameterList" << endl;
 } // Parser::ActualParameterList()
 
 void Parser::AssignmentOperator() {
   if ( DEBUG ) cout << "AssignmentOperator" << endl;
-  if ( mToken.tokenType != ASSIGN && mToken.tokenType != TE && 
+  if ( mToken.tokenType != ASSIGN && mToken.tokenType != TE &&
        mToken.tokenType != DE && mToken.tokenType != RE &&
        mToken.tokenType != PE && mToken.tokenType != ME ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'52";
@@ -2405,22 +2401,22 @@ void Parser::AssignmentOperator() {
 
 void Parser::RomceAndRomloe() {
   if ( DEBUG ) cout << "RomceAndRomloe" << endl;
-  
+
   RestOfMaybeLogicalOrExp();
-  
+
   // mToken = mScanner.GetToken();
   if ( mToken.tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   if ( mToken.tokenType == QUE ) {
     mToken = mScanner.GetToken();
     if ( mToken.tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-  
+
     if ( mToken.tokenType == ID || mToken.tokenType == PP ||
          mToken.tokenType == MM || mToken.tokenType == ADD ||
          mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
@@ -2431,7 +2427,7 @@ void Parser::RomceAndRomloe() {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'53";
       throw ( errorMsg );
     } // end else
-    
+
     if ( mToken.tokenType == COLON ) {
       mToken = mScanner.GetToken();
       if ( mToken.tokenType == END_OF_FILE ) {
@@ -2455,18 +2451,18 @@ void Parser::RomceAndRomloe() {
       throw ( errorMsg );
     } // end else
   } // end if
-  
+
   if ( DEBUG ) cout << "end of RomceAndRomloe" << endl;
 } // Parser::RomceAndRomloe()
 
 void Parser::RestOfMaybeLogicalOrExp() {
   if ( DEBUG ) cout << "RestOfMaybeLogicalOrExp" << endl;
   RestOfMaybeLogicalAndExp();
-  
-  
+
+
   while ( mToken.tokenType == OR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeLogicalAndExp();
   } // end while
 
@@ -2476,40 +2472,40 @@ void Parser::RestOfMaybeLogicalOrExp() {
 void Parser::MaybeLogicalAndExp() {
   if ( DEBUG ) cout << "MaybeLogicalAndExp" << endl;
   MaybeBitOrExp();
-  
-  
+
+
   while ( mToken.tokenType == AND ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeLogicalAndExp" << endl;
 } // Parser::MaybeLogicalAndExp()
 
 void Parser::RestOfMaybeLogicalAndExp() {
   if ( DEBUG ) cout << "RestOfMaybeLogicalAndExp" << endl;
   RestOfMaybeBitOrExp();
-  
+
   while ( mToken.tokenType == AND ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeLogicalAndExp" << endl;
 } // Parser::RestOfMaybeLogicalAndExp()
 
 void Parser::MaybeBitOrExp() {
   if ( DEBUG ) cout << "MaybeBitOrExp" << endl;
   MaybeBitExOrExp();
-  
+
   while ( mToken.tokenType == BITOR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitExOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitOrExp" << endl;
 } // Parser::MaybeBitOrExp()
 
@@ -2519,10 +2515,10 @@ void Parser::RestOfMaybeBitOrExp() {
 
   while ( mToken.tokenType == BITOR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitExOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitOrExp" << endl;
 } // Parser::RestOfMaybeBitOrExp()
 
@@ -2532,10 +2528,10 @@ void Parser::MaybeBitExOrExp() {
 
   while ( mToken.tokenType == BITXOR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitAndExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitExOrExp" << endl;
 } // Parser::MaybeBitExOrExp()
 
@@ -2545,23 +2541,23 @@ void Parser::RestOfMaybeBitExOrExp() {
 
   while ( mToken.tokenType == BITXOR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeBitAndExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitExOrExp" << endl;
 } // Parser::RestOfMaybeBitExOrExp()
 
 void Parser::MaybeBitAndExp() {
   if ( DEBUG ) cout << "MaybeBitAndExp" << endl;
   MaybeEqualityExp();
-  
+
   while ( mToken.tokenType == BITAND ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeEqualityExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitAndExp" << endl;
 } // Parser::MaybeBitAndExp()
 
@@ -2571,10 +2567,10 @@ void Parser::RestOfMaybeBitAndExp() {
 
   while ( mToken.tokenType == BITAND ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeEqualityExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitAndExp" << endl;
 } // Parser::RestOfMaybeBitAndExp()
 
@@ -2584,10 +2580,10 @@ void Parser::MaybeEqualityExp() {
 
   while ( mToken.tokenType == NEQ || mToken.tokenType == EQ ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeRelationalExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeEqualityExp" << endl;
 } // Parser::MaybeEqualityExp()
 
@@ -2597,10 +2593,10 @@ void Parser::RestOfMaybeEqualityExp() {
 
   while ( mToken.tokenType == NEQ || mToken.tokenType == EQ ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeRelationalExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeEqualityExp" << endl;
 } // Parser::RestOfMaybeEqualityExp()
 
@@ -2611,10 +2607,10 @@ void Parser::MaybeRelationalExp() {
   while ( mToken.tokenType == GE || mToken.tokenType == LE ||
           mToken.tokenType == LSS || mToken.tokenType == GTR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeShiftExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeRelationalExp" << endl;
 } // Parser::MaybeRelationalExp()
 
@@ -2625,51 +2621,51 @@ void Parser::RestOfMaybeRelationalExp() {
   while ( mToken.tokenType == GE || mToken.tokenType == LE ||
           mToken.tokenType == LSS || mToken.tokenType == GTR ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeShiftExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeRelationalExp" << endl;
 } // Parser::RestOfMaybeRelationalExp()
 
 void Parser::MaybeShiftExp() {
   if ( DEBUG ) cout << "MaybeShiftExp" << endl;
   MaybeAdditiveExp();
-  
+
   while ( mToken.tokenType == RS || mToken.tokenType == LS ) {
     if ( mToken.tokenType == LS && mIsCout && mIsInLP == 0 ) return;
     mToken = mScanner.GetToken();
-    
+
     MaybeAdditiveExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeShiftExp" << endl;
 } // Parser::MaybeShiftExp()
 
 void Parser::RestOfMaybeShiftExp() {
   if ( DEBUG ) cout << "RestOfMaybeShiftExp" << endl;
   RestOfMaybeAdditiveExp();
-  
+
   while ( mToken.tokenType == RS || mToken.tokenType == LS ) {
     if ( mToken.tokenType == LS && mIsCout && mIsInLP == 0 ) return;
     mToken = mScanner.GetToken();
-    
+
     MaybeAdditiveExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeShiftExp" << endl;
 } // Parser::RestOfMaybeShiftExp()
 
 void Parser::MaybeAdditiveExp() {
   if ( DEBUG ) cout << "MaybeAdditiveExp" << endl;
   MaybeMultExp();
-  
+
   while ( mToken.tokenType == ADD || mToken.tokenType == SUB ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeMultExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeAdditiveExp" << endl;
 } // Parser::MaybeAdditiveExp()
 
@@ -2677,13 +2673,13 @@ void Parser::RestOfMaybeAdditiveExp() {
   if ( DEBUG ) cout << "RestOfMaybeAdditiveExp" << endl;
 
   RestOfMaybeMultExp();
-  
+
   while ( mToken.tokenType == ADD || mToken.tokenType == SUB ) {
     mToken = mScanner.GetToken();
-    
+
     MaybeMultExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeAdditiveExp" << endl;
 } // Parser::RestOfMaybeAdditiveExp()
 
@@ -2693,7 +2689,7 @@ void Parser::MaybeMultExp() {
   UnaryExp();
 
   RestOfMaybeMultExp();
-  
+
   if ( DEBUG ) cout << "end of MaybeMultExp" << endl;
 } // Parser::MaybeMultExp()
 
@@ -2709,7 +2705,7 @@ void Parser::RestOfMaybeMultExp() {
 
     UnaryExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeMultExp" << endl;
 } // Parser::RestOfMaybeMultExp()
 
@@ -2718,7 +2714,7 @@ void Parser::UnaryExp() {
 
   if ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
     mToken = mScanner.GetToken();
-  
+
     while ( mToken.tokenType == ADD || mToken.tokenType == SUB || mToken.tokenType == BITNOT ) {
       mToken = mScanner.GetToken();
     } // end while
@@ -2763,7 +2759,7 @@ void Parser::UnaryExp() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'58";
     throw ( errorMsg );
   } // end else
-  
+
   // mToken = mScanner.GetToken();
   if ( DEBUG ) cout << "end of UnaryExp" << endl;
 } // Parser::UnaryExp()
@@ -2805,7 +2801,7 @@ void Parser::SignedUnaryExp() {
            mToken.tokenType == MM || mToken.tokenType == ADD ||
            mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
            mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
-      
+
         Expression();
         if ( mToken.tokenType != MRP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'60";
@@ -2829,13 +2825,15 @@ void Parser::SignedUnaryExp() {
          mToken.tokenType == MM || mToken.tokenType == ADD ||
          mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
          mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
-      
+
       Expression();
       if ( mToken.tokenType != RP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'62";
         throw ( errorMsg );
       } // end if
       else mIsInLP--;
+
+      mToken = mScanner.GetToken();
     } // end if
     else {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'63";
@@ -2852,7 +2850,7 @@ void Parser::SignedUnaryExp() {
 
   if ( DEBUG ) cout << "end of SignedUnaryExp" << endl;
 } // Parser::SignedUnaryExp()
-  
+
 void Parser::UnsignedUnaryExp() {
   if ( DEBUG ) cout << "UnsignedUnaryExp" << endl;
 
@@ -2865,7 +2863,7 @@ void Parser::UnsignedUnaryExp() {
       if ( mToken.tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
-      } // end if 
+      } // end if
 
       if ( mToken.tokenType == ID || mToken.tokenType == PP ||
            mToken.tokenType == MM || mToken.tokenType == ADD ||
@@ -2890,7 +2888,7 @@ void Parser::UnsignedUnaryExp() {
            mToken.tokenType == MM || mToken.tokenType == ADD ||
            mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
            mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
-      
+
         Expression();
         if ( mToken.tokenType != MRP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'66";
@@ -2921,7 +2919,7 @@ void Parser::UnsignedUnaryExp() {
          mToken.tokenType == MM || mToken.tokenType == ADD ||
          mToken.tokenType == SUB || mToken.tokenType == BITNOT ||
          mToken.tokenType == CONSTANT || mToken.tokenType == LP ) {
-      
+
       Expression();
       if ( mToken.tokenType == RP ) {
         mIsInLP--;
@@ -2981,7 +2979,7 @@ void Parser::StatementOp() {
             mScanner.mTokenList[mCur].tokenType == LP ) { // condition 2
 
     ExpressionOp( result );
-    
+
     if ( mScanner.mTokenList[mCur].tokenType != SCLN ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'26";
       throw ( errorMsg );
@@ -2993,7 +2991,7 @@ void Parser::StatementOp() {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mScanner.mTokenList[mCur].tokenType == ID ||
          mScanner.mTokenList[mCur].tokenType == PP ||
          mScanner.mTokenList[mCur].tokenType == MM ||
@@ -3002,10 +3000,10 @@ void Parser::StatementOp() {
          mScanner.mTokenList[mCur].tokenType == BITNOT ||
          mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == LP ) {
-      
+
       ExpressionOp( result );
     } // end if
-    
+
     if ( mScanner.mTokenList[mCur].tokenType != SCLN ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'27";
       throw ( errorMsg );
@@ -3021,7 +3019,7 @@ void Parser::StatementOp() {
   } // end if
   else if ( mScanner.mTokenList[mCur].tokenType == WHILE ) { // condition 6
     mNoPrint++;
-    
+
     StatementWhileOp( result );
     mNoPrint--;
   } // end if
@@ -3035,7 +3033,7 @@ void Parser::StatementOp() {
 
     if ( mScanner.mTokenList[mCur].tokenType == WHILE ) {
       mCur++;
-      
+
       if ( mScanner.mTokenList[mCur].tokenType == LP ) {
         mCur++;
 
@@ -3057,7 +3055,7 @@ void Parser::StatementOp() {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'34";
           throw ( errorMsg );
         } // end else
-    
+
         if ( mScanner.mTokenList[mCur].tokenType != RP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'35";
           throw ( errorMsg );
@@ -3067,7 +3065,7 @@ void Parser::StatementOp() {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'29";
         throw ( errorMsg );
       } // end else
-      
+
       mCur++;
 
       if ( mScanner.mTokenList[mCur].tokenType != SCLN ) {
@@ -3081,7 +3079,7 @@ void Parser::StatementOp() {
   else if ( mScanner.mTokenList[mCur].tokenType == ELSE && mIfStatement ) {
     mIfStatement--;
     mCur++;
-    
+
     StatementOp();
   } // end if
   else if ( mScanner.mTokenList[mCur].tokenType == COUT ) {
@@ -3099,10 +3097,10 @@ void Parser::StatementOp() {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'3'";
     throw ( errorMsg );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of Statement" << endl;
 
-  
+
 
   if ( ! mNoPrint ) cout << "Statement executed ..." << endl;
 } // Parser::StatementOp()
@@ -3117,7 +3115,7 @@ void Parser::DefinitionOp( bool isBLP ) {
     } // end if
     else if ( mScanner.mTokenList[mCur].tokenType == ID ) {
       mCur++;
-      if ( mScanner.mTokenList[mCur].tokenType == LP ) FunctionDefinitionWithoutID(); 
+      if ( mScanner.mTokenList[mCur].tokenType == LP ) FunctionDefinitionWithoutID();
       else {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'02";
         throw ( errorMsg );
@@ -3128,12 +3126,12 @@ void Parser::DefinitionOp( bool isBLP ) {
       throw ( errorMsg );
     } // end else
   } // end if
-  else if ( mScanner.mTokenList[mCur].tokenType == INT || 
-            mScanner.mTokenList[mCur].tokenType == CHAR || 
-            mScanner.mTokenList[mCur].tokenType == FLOAT || 
-            mScanner.mTokenList[mCur].tokenType == STRING || 
+  else if ( mScanner.mTokenList[mCur].tokenType == INT ||
+            mScanner.mTokenList[mCur].tokenType == CHAR ||
+            mScanner.mTokenList[mCur].tokenType == FLOAT ||
+            mScanner.mTokenList[mCur].tokenType == STRING ||
             mScanner.mTokenList[mCur].tokenType == BOOL ) {
-              
+
     string type = mScanner.mTokenList[mCur].tokenString;
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
@@ -3148,7 +3146,7 @@ void Parser::DefinitionOp( bool isBLP ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'03";
       throw ( errorMsg );
     } // end else
-    
+
   } // end if
   else {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'04";
@@ -3166,12 +3164,12 @@ void Parser::FunctionDefinitionOrDeclaratorsOp( string type, string name, bool i
     throw ( error );
   } // end if
   else if ( mScanner.mTokenList[mCur].tokenType == LP ) {
-    
+
     // record the type and name of the function
-    
+
     FunctionDefinitionWithoutID();
   } // end if
-  else if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == SCLN || 
+  else if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == SCLN ||
             mScanner.mTokenList[mCur].tokenType == COMMA ) {
     RestOfDeclaratorsOp( type, name, isBLP );
   } // end if
@@ -3221,7 +3219,7 @@ void Parser::RestOfDeclaratorsOp( string variableType, string variableName, bool
         string error = "EOF";
         throw ( error );
       } // end if
-      else if ( mScanner.mTokenList[mCur].tokenType == ID ) { 
+      else if ( mScanner.mTokenList[mCur].tokenType == ID ) {
         // check is there any '[' CONSTANT ']' pattern next
         string name = mScanner.mTokenList[mCur].tokenString;
         mCur++;
@@ -3266,7 +3264,7 @@ void Parser::RestOfDeclaratorsOp( string variableType, string variableName, bool
       } // end else
     } // end while
   } // end if
-  
+
   if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
@@ -3288,7 +3286,7 @@ void Parser::DeclarationOp( bool isBLP ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   if ( mScanner.mTokenList[mCur].tokenType == ID ) {
     name = mScanner.mTokenList[mCur].tokenString;
     mCur++;
@@ -3297,8 +3295,8 @@ void Parser::DeclarationOp( bool isBLP ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'24";
     throw ( errorMsg );
   } // end else
-  
-  if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == SCLN || 
+
+  if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == SCLN ||
        mScanner.mTokenList[mCur].tokenType == COMMA ) {
     RestOfDeclaratorsOp( type, name, isBLP );
   } // end if
@@ -3306,7 +3304,7 @@ void Parser::DeclarationOp( bool isBLP ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'25";
     throw ( errorMsg );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of Declaration" << endl;
 } // Parser::DeclarationOp()
 
@@ -3381,7 +3379,7 @@ int Parser::FindVariable( string name, bool printError ) {
 int Parser::FindArrayVariable( string name, string num ) {
   if ( DEBUG ) cout << name << " FindVariable" << endl;
   int pos = StringToInt( num );
-    
+
   for ( int i = mVariableList.size() - 1 ; i >= 0 ; i-- ) {
     if ( mVariableList[i].name == name && ( i == 0 || mVariableList[i - 1].name != name ) ) {
       if ( mVariableList[i].region >= mThreshold || mVariableList[i].region == 0 ) return i + pos;
@@ -3419,7 +3417,7 @@ void Parser::FunctionDefinitionWithoutIDOp() {
     temp.functionName = mScanner.mTokenList[1].tokenString;
     temp.tokenList = mScanner.mTokenList;
     mFunctionList.push_back( temp );
-      
+
     cout << "Definition of " << temp.functionName << "() entered ..." << endl;
   } // end if
   else { // just change type
@@ -3431,7 +3429,7 @@ void Parser::FunctionDefinitionWithoutIDOp() {
 
 void Parser::CheckFunctionNameExist( string name ) {
   if ( name == "ListAllFunctions" || name == "ListAllVariables" ||
-       name == "ListVariable" || name == "ListFunction" || 
+       name == "ListVariable" || name == "ListFunction" ||
        name == "Done" ) {
 
     return;
@@ -3456,7 +3454,7 @@ void Parser::ListAllFunctions() {
 
 void Parser::ListAllVariables() {
   VariableSort();
-  
+
   for ( int i = 0 ; i < mVariableList.size() ; i++ ) {
     if ( i == 0 || mVariableList[i].name != mVariableList[i - 1].name ) {
       cout << mVariableList[i].name << endl;
@@ -3495,9 +3493,9 @@ void Parser::ListFunction( string name ) {
             } // end for
           } // end if
         } // end if
-        
-        
-        if ( next < mFunctionList[i].tokenList.size() ) 
+
+
+        if ( next < mFunctionList[i].tokenList.size() )
           nextToken = mFunctionList[i].tokenList[next].tokenString;
 
         if ( j == mFunctionList[i].tokenList.size() - 2 ) cout << endl;
@@ -3505,7 +3503,7 @@ void Parser::ListFunction( string name ) {
         else if ( mFunctionList[i].tokenList[j].tokenString == ";" ) {
           cout << endl;
           preSpaceOneTime = 0;
-          if ( next < mFunctionList[i].tokenList.size() && 
+          if ( next < mFunctionList[i].tokenList.size() &&
                nextToken == "}" ) preSpace = preSpace - 2;
 
           for ( int k = 0 ; k < preSpace ; k++ ) {
@@ -3527,7 +3525,7 @@ void Parser::ListFunction( string name ) {
         } // end if
         else if ( mFunctionList[i].tokenList[j + 1].tokenString != "[" &&
                   ( mFunctionList[i].tokenList[j + 1].tokenString != "(" ||
-                    ( mFunctionList[i].tokenList[j].tokenString == "while" || 
+                    ( mFunctionList[i].tokenList[j].tokenString == "while" ||
                       mFunctionList[i].tokenList[j].tokenString == "if" ) ) &&
                   mFunctionList[i].tokenList[j + 1].tokenString != "++" &&
                   mFunctionList[i].tokenList[j + 1].tokenString != "--" &&
@@ -3620,13 +3618,13 @@ void Parser::CompoundStatementOp( string &result ) {
     string error = "EOF";
     throw ( error );
   } // end if
-  
+
   if ( IsDefOrStatementOp() ) {
     while ( IsDefOrStatementOp() ) {
-      if ( mScanner.mTokenList[mCur].tokenType == INT || 
-           mScanner.mTokenList[mCur].tokenType == CHAR || 
-           mScanner.mTokenList[mCur].tokenType == FLOAT || 
-           mScanner.mTokenList[mCur].tokenType == STRING || 
+      if ( mScanner.mTokenList[mCur].tokenType == INT ||
+           mScanner.mTokenList[mCur].tokenType == CHAR ||
+           mScanner.mTokenList[mCur].tokenType == FLOAT ||
+           mScanner.mTokenList[mCur].tokenType == STRING ||
            mScanner.mTokenList[mCur].tokenType == BOOL ) {
         DefinitionOp( true );
       } // end if
@@ -3639,7 +3637,7 @@ void Parser::CompoundStatementOp( string &result ) {
                 mScanner.mTokenList[mCur].tokenType == CONSTANT ||
                 mScanner.mTokenList[mCur].tokenType == RETURN ||
                 mScanner.mTokenList[mCur].tokenType == BLP ||
-                mScanner.mTokenList[mCur].tokenType == IF || 
+                mScanner.mTokenList[mCur].tokenType == IF ||
                 mScanner.mTokenList[mCur].tokenType == WHILE ||
                 mScanner.mTokenList[mCur].tokenType == DO ||
                 mScanner.mTokenList[mCur].tokenType == SCLN ||
@@ -3661,7 +3659,7 @@ void Parser::CompoundStatementOp( string &result ) {
       } // end if
     } // end while
   } // end if
-  
+
   if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
     string error = "EOF";
     throw ( error );
@@ -3674,7 +3672,7 @@ void Parser::CompoundStatementOp( string &result ) {
     mRegion--;
     RemoveVariables();
   } // end else
-  
+
   if ( DEBUG ) cout << "end of CompoundStatement" << endl;
   mLastStatementIf = false;
 } // Parser::CompoundStatementOp()
@@ -3744,7 +3742,7 @@ void Parser::CoutExpressionOp( string &result ) {
     if ( mScanner.mTokenList[mCur].tokenType == RP ) mCur++;
   } // end while
 
-  mIsCout = false;  
+  mIsCout = false;
 } // Parser::CoutExpressionOp()
 
 void Parser::CinExpressionOp( string &result ) {
@@ -3761,7 +3759,7 @@ bool Parser::StatementIfOp( string &result ) {
     string error = "EOF";
     throw ( error );
   } // end if
-    
+
   if ( mScanner.mTokenList[mCur].tokenType == LP ) {
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
@@ -3775,7 +3773,7 @@ bool Parser::StatementIfOp( string &result ) {
          mScanner.mTokenList[mCur].tokenType == ADD ||
          mScanner.mTokenList[mCur].tokenType == SUB ||
          mScanner.mTokenList[mCur].tokenType == BITNOT ||
-         mScanner.mTokenList[mCur].tokenType == CONSTANT || 
+         mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == LP ) {
       ExpressionOp( result );
       if ( doStatement && ( result == "false" || result == "0" ) ) mExecute = false;
@@ -3787,7 +3785,7 @@ bool Parser::StatementIfOp( string &result ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'31";
       throw ( errorMsg );
     } // end else
-    
+
     if ( mScanner.mTokenList[mCur].tokenType != RP ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'32";
       throw ( errorMsg );
@@ -3809,7 +3807,7 @@ bool Parser::StatementIfOp( string &result ) {
          mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == RETURN ||
          mScanner.mTokenList[mCur].tokenType == BLP ||
-         mScanner.mTokenList[mCur].tokenType == IF || 
+         mScanner.mTokenList[mCur].tokenType == IF ||
          mScanner.mTokenList[mCur].tokenType == WHILE ||
          mScanner.mTokenList[mCur].tokenType == DO ||
          mScanner.mTokenList[mCur].tokenType == SCLN ||
@@ -3824,7 +3822,7 @@ bool Parser::StatementIfOp( string &result ) {
     } // end else
 
     mCur++;
-    
+
 
     if ( mScanner.mTokenList[mCur].tokenType == ELSE ) {
       mCur++;
@@ -3861,7 +3859,7 @@ void Parser::StatementWhileOp( string &result ) {
   bool doStatement = mExecute;
 
   if ( mScanner.mTokenList[mCur].tokenType == LP ) {
-    
+
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
       string error = "EOF";
@@ -3887,18 +3885,18 @@ void Parser::StatementWhileOp( string &result ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'34";
       throw ( errorMsg );
     } // end else
-    
+
     if ( mScanner.mTokenList[mCur].tokenType != RP ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'35";
       throw ( errorMsg );
     } // end if
-    
+
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mScanner.mTokenList[mCur].tokenType == ID ||
          mScanner.mTokenList[mCur].tokenType == PP ||
          mScanner.mTokenList[mCur].tokenType == MM ||
@@ -3908,7 +3906,7 @@ void Parser::StatementWhileOp( string &result ) {
          mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == RETURN ||
          mScanner.mTokenList[mCur].tokenType == BLP ||
-         mScanner.mTokenList[mCur].tokenType == IF || 
+         mScanner.mTokenList[mCur].tokenType == IF ||
          mScanner.mTokenList[mCur].tokenType == WHILE ||
          mScanner.mTokenList[mCur].tokenType == DO ||
          mScanner.mTokenList[mCur].tokenType == SCLN ||
@@ -3922,7 +3920,7 @@ void Parser::StatementWhileOp( string &result ) {
       throw ( errorMsg );
     } // end else
   } // end if
-  
+
   if ( mExecute ) {
     mCur = pos;
     StatementWhileOp( result );
@@ -3935,7 +3933,7 @@ void Parser::StatementWhileOp( string &result ) {
 void Parser::ExpressionOp( string &result ) {
   if ( DEBUG ) cout << "ExpressionOp" << endl;
   BasicExpressionOp( result );
-  
+
   if ( mScanner.mTokenList[mCur].tokenType == COMMA ) {
     while ( mScanner.mTokenList[mCur].tokenType == COMMA ) {
       mCur++;
@@ -3943,7 +3941,7 @@ void Parser::ExpressionOp( string &result ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       if ( mScanner.mTokenList[mCur].tokenType == ID ||
            mScanner.mTokenList[mCur].tokenType == PP ||
            mScanner.mTokenList[mCur].tokenType == MM ||
@@ -3954,14 +3952,14 @@ void Parser::ExpressionOp( string &result ) {
            mScanner.mTokenList[mCur].tokenType == LP ) {
         BasicExpressionOp( result );
       } // end if
-      
+
       if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
       } // end if
     } // end while
   } // end if
-  
+
   if ( DEBUG ) cout << "end of Expression" << endl;
 } // Parser::ExpressionOp()
 
@@ -3973,14 +3971,14 @@ void Parser::BasicExpressionOp( string &result ) {
     // FindVariable( mToken.tokenString, true );
     string name = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) { 
+    if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     RestOfIDStartedBasicExpOp( name, result );
   } // end if
-  else if ( mScanner.mTokenList[mCur].tokenType == PP || 
+  else if ( mScanner.mTokenList[mCur].tokenType == PP ||
             mScanner.mTokenList[mCur].tokenType == MM ) { // condition 2
     string ppOrmm = mScanner.mTokenList[mCur].tokenString;
     string varName;
@@ -4001,9 +3999,9 @@ void Parser::BasicExpressionOp( string &result ) {
       throw ( errorMsg );
     } // end else
 
-    
+
   } // end if
-  else if ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB || 
+  else if ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ||
             mScanner.mTokenList[mCur].tokenType == BITNOT ) { // condition 3
     string sign = mScanner.mTokenList[mCur].tokenString;
     mCur++;
@@ -4011,8 +4009,8 @@ void Parser::BasicExpressionOp( string &result ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
-    while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB || 
+
+    while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ||
             mScanner.mTokenList[mCur].tokenType == BITNOT ) {
       if ( mScanner.mTokenList[mCur].tokenType == SUB ) {
         if ( sign == "-" ) sign = "+";
@@ -4029,8 +4027,8 @@ void Parser::BasicExpressionOp( string &result ) {
         throw ( error );
       } // end if
     } // end while
-    
-    if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT || 
+
+    if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == LP ) {
       SignedUnaryExpOp( result );
       if ( mExecute ) {
@@ -4060,7 +4058,7 @@ void Parser::BasicExpressionOp( string &result ) {
         string error = "EOF";
         throw ( error );
       } // end if
-    
+
       if ( mScanner.mTokenList[mCur].tokenType == ID ||
            mScanner.mTokenList[mCur].tokenType == PP ||
            mScanner.mTokenList[mCur].tokenType == MM ||
@@ -4076,10 +4074,10 @@ void Parser::BasicExpressionOp( string &result ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'40";
         throw ( errorMsg );
       } // end else
-      
+
       if ( mScanner.mTokenList[mCur].tokenType != RP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'41";
-        throw ( errorMsg );      
+        throw ( errorMsg );
       } // end if
 
       mIsInLP--;
@@ -4087,34 +4085,34 @@ void Parser::BasicExpressionOp( string &result ) {
     else {
       if ( mExecute ) result = mScanner.mTokenList[mCur].tokenString;
     } // end else
-  
+
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
       string error = "EOF";
       throw ( error );
-    } // end if	
+    } // end if
 
     RomceAndRomloeOp( result );
   } // end if
-  
+
   if ( DEBUG ) cout << "end of BasicExpression" << endl;
 } // Parser::BasicExpressionOp()
 
 void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
   if ( DEBUG ) cout << "RestOfIDStartedBasicExpOp " << endl;
-  if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == ASSIGN || 
-       mScanner.mTokenList[mCur].tokenType == TE || mScanner.mTokenList[mCur].tokenType == DE || 
-       mScanner.mTokenList[mCur].tokenType == RE || mScanner.mTokenList[mCur].tokenType == PE || 
+  if ( mScanner.mTokenList[mCur].tokenType == MLP || mScanner.mTokenList[mCur].tokenType == ASSIGN ||
+       mScanner.mTokenList[mCur].tokenType == TE || mScanner.mTokenList[mCur].tokenType == DE ||
+       mScanner.mTokenList[mCur].tokenType == RE || mScanner.mTokenList[mCur].tokenType == PE ||
        mScanner.mTokenList[mCur].tokenType == ME || mScanner.mTokenList[mCur].tokenType == PP ||
-       mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD || 
+       mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
        mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
-       mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT ) { 
+       mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT ) {
     // condition 1
     int varPos = 0;
 
     if ( mScanner.mTokenList[mCur].tokenType == MLP ) {
       mCur++;
-    
+
       if ( mScanner.mTokenList[mCur].tokenType == ID ||
            mScanner.mTokenList[mCur].tokenType == PP ||
            mScanner.mTokenList[mCur].tokenType == MM ||
@@ -4130,7 +4128,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'42";
         throw ( errorMsg );
       } // end else
-    
+
       if ( mScanner.mTokenList[mCur].tokenType != MRP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'43";
         throw ( errorMsg );
@@ -4145,9 +4143,9 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
       varPos = FindVariable( name, false );
       result = mVariableList[varPos].val;
     } // end else
-    
-    if ( mScanner.mTokenList[mCur].tokenType == ASSIGN || mScanner.mTokenList[mCur].tokenType == TE || 
-         mScanner.mTokenList[mCur].tokenType == DE || mScanner.mTokenList[mCur].tokenType == RE || 
+
+    if ( mScanner.mTokenList[mCur].tokenType == ASSIGN || mScanner.mTokenList[mCur].tokenType == TE ||
+         mScanner.mTokenList[mCur].tokenType == DE || mScanner.mTokenList[mCur].tokenType == RE ||
          mScanner.mTokenList[mCur].tokenType == PE || mScanner.mTokenList[mCur].tokenType == ME ) {
 
       string eq = mScanner.mTokenList[mCur].tokenString;
@@ -4156,7 +4154,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
         string error = "EOF";
         throw ( error );
       } // end if
-      
+
       if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == PP ||
            mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
            mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
@@ -4167,11 +4165,11 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
       if ( mExecute ) {
         if ( eq == "+=" ) {
           string first = mVariableList[varPos].val;
-          if ( first[0] == '"' || first[0] == '\'' || 
+          if ( first[0] == '"' || first[0] == '\'' ||
                result[0] == '"' || result[0] == '\'' ) {
             if ( first[0] == '"' || first[0] == '\'' ) first = first.substr( 1, first.size() - 2 );
             if ( result[0] == '"' || result[0] == '\'' ) result = result.substr( 1, result.size() - 2 );
-          
+
             result = "\"" + first + result + "\"";
           } // end if
           else if ( ! FindDigitPoint( first ) && ! FindDigitPoint( result ) )
@@ -4180,7 +4178,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
             result = FloatToString( StringToFloat( first ) + StringToInt( result ) );
           else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToInt( first ) + StringToFloat( result ) );
-          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToFloat( first ) + StringToFloat( result ) );
         } // end if
         else if ( eq == "-=" ) {
@@ -4191,7 +4189,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
             result = FloatToString( StringToFloat( first ) - StringToInt( result ) );
           else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToInt( first ) - StringToFloat( result ) );
-          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToFloat( first ) - StringToFloat( result ) );
         } // end if
         else if ( eq == "*=" ) {
@@ -4202,7 +4200,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
             result = FloatToString( StringToFloat( first ) * StringToInt( result ) );
           else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToInt( first ) * StringToFloat( result ) );
-          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToFloat( first ) * StringToFloat( result ) );
         } // end if
         else if ( eq == "/=" ) {
@@ -4213,7 +4211,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
             result = FloatToString( StringToFloat( first ) * StringToInt( result ) );
           else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToInt( first ) * StringToFloat( result ) );
-          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+          else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
             result = FloatToString( StringToFloat( first ) * StringToFloat( result ) );
         } // end if
         else if ( eq == "%=" ) {
@@ -4262,13 +4260,13 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == PP ||
          mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
          mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
          mScanner.mTokenList[mCur].tokenType == CONSTANT || mScanner.mTokenList[mCur].tokenType == LP ) {
       ActualParameterList();
-      
+
     } // end if
 
     if ( mScanner.mTokenList[mCur].tokenType == RP ) {
@@ -4296,7 +4294,7 @@ void Parser::RestOfIDStartedBasicExpOp( string name, string &result ) {
     result = mVariableList[pos].val;
     RomceAndRomloeOp( result );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of RestOfIDStartedBasicExp" << endl;
 } // Parser::RestOfIDStartedBasicExpOp()
 
@@ -4308,7 +4306,7 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
       string error = "EOF";
       throw ( error );
     } // end if
-    
+
     if ( mScanner.mTokenList[mCur].tokenType == ID ||
          mScanner.mTokenList[mCur].tokenType == PP ||
          mScanner.mTokenList[mCur].tokenType == MM ||
@@ -4319,8 +4317,8 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
          mScanner.mTokenList[mCur].tokenType == ID ||
          mScanner.mTokenList[mCur].tokenType == LP ) {
       ExpressionOp( result );
-      
-      
+
+
       if ( mScanner.mTokenList[mCur].tokenType == MRP ) {
         mCur++;
         if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
@@ -4328,7 +4326,7 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
           throw ( error );
         } // end if
 
-        
+
         int varPos;
         string ori;
         if ( mExecute ) varPos = FindArrayVariable( name, result );
@@ -4336,21 +4334,21 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
 
         if ( mExecute ) {
           if ( ppOrmm == "++" ) {
-            if ( mVariableList[varPos].type == "float" ) 
+            if ( mVariableList[varPos].type == "float" )
               result = FloatToString( StringToFloat( ori ) + 1 );
             else result = IntToString( StringToInt( ori ) + 1 );
           } // end if
           else {
-            if ( mVariableList[varPos].type == "float" ) 
+            if ( mVariableList[varPos].type == "float" )
               result = FloatToString( StringToFloat( ori ) - 1 );
             else result = IntToString( StringToInt( ori ) - 1 );
           } // end else
 
           mVariableList[varPos].val = result;
         } // end if
-        
+
         if ( mScanner.mTokenList[mCur].tokenType == PP || mScanner.mTokenList[mCur].tokenType == LP ||
-             mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD || 
+             mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
              mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
              mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT ) {
 
@@ -4372,18 +4370,18 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
     } // end else
   } // end if
   else {
-    
+
     int varPos = FindVariable( name, false );
     string ori = mVariableList[varPos].val;
 
     if ( mExecute ) {
       if ( ppOrmm == "++" ) {
-        if ( mVariableList[varPos].type == "float" ) 
+        if ( mVariableList[varPos].type == "float" )
           result = FloatToString( StringToFloat( ori ) + 1 );
         else result = IntToString( StringToInt( ori ) + 1 );
       } // end if
       else {
-        if ( mVariableList[varPos].type == "float" ) 
+        if ( mVariableList[varPos].type == "float" )
           result = FloatToString( StringToFloat( ori ) - 1 );
         else result = IntToString( StringToInt( ori ) - 1 );
       } // end else
@@ -4393,7 +4391,7 @@ void Parser::RestOfPPMMIDStartedBasicExpOp( string name, string &result, string 
 
     RomceAndRomloeOp( result );
   } // end else
-  
+
   if ( DEBUG ) cout << "end of RestOfPPMMIDStartedBasicExp" << endl;
 } // Parser::RestOfPPMMIDStartedBasicExpOp() ;
 
@@ -4404,7 +4402,7 @@ void Parser::ActualParameterListOp( string &result ) {
 
   if ( DEBUG ) cout << "ActualParameterList" << endl;
   BasicExpression();
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == COMMA ) {
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
@@ -4422,18 +4420,18 @@ void Parser::ActualParameterListOp( string &result ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'51";
       throw ( errorMsg );
     } // end else
-    
+
 
   } // end while
-  
+
   if ( DEBUG ) cout << "end of ActualParameterList" << endl;
 } // Parser::ActualParameterListOp()
 
 void Parser::RomceAndRomloeOp( string &result ) {
   if ( DEBUG ) cout << "RomceAndRomloeOp" << endl;
-  
+
   RestOfMaybeLogicalOrExpOp( result );
-  
+
   if ( mScanner.mTokenList[mCur].tokenType == QUE ) {
     string ans = result;
     bool doStatement = mExecute;
@@ -4444,7 +4442,7 @@ void Parser::RomceAndRomloeOp( string &result ) {
       string error = "EOF";
       throw ( error );
     } // end if
-  
+
     if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == PP ||
          mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
          mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
@@ -4483,15 +4481,15 @@ void Parser::RomceAndRomloeOp( string &result ) {
       throw ( errorMsg );
     } // end else
   } // end if
-  
+
   if ( DEBUG ) cout << "end of RomceAndRomloe" << endl;
 } // Parser::RomceAndRomloeOp()
 
 void Parser::RestOfMaybeLogicalOrExpOp( string &result ) {
   if ( DEBUG ) cout << "RestOfMaybeLogicalOrExpOp" << endl;
   RestOfMaybeLogicalAndExpOp( result );
-  
-  
+
+
   while ( mScanner.mTokenList[mCur].tokenType == OR ) {
     mCur++;
     string first = result;
@@ -4508,8 +4506,8 @@ void Parser::RestOfMaybeLogicalOrExpOp( string &result ) {
 void Parser::MaybeLogicalAndExpOp( string &result ) {
   if ( DEBUG ) cout << "MaybeLogicalAndExpOp" << endl;
   MaybeBitOrExpOp( result );
-  
-  
+
+
   while ( mScanner.mTokenList[mCur].tokenType == AND ) {
     mCur++;
     string first = result;
@@ -4519,17 +4517,17 @@ void Parser::MaybeLogicalAndExpOp( string &result ) {
       if ( first == "false" && result == "true" ) result = "false";
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeLogicalAndExp" << endl;
 } // Parser::MaybeLogicalAndExpOp()
 
 void Parser::RestOfMaybeLogicalAndExpOp( string &result ) {
   if ( DEBUG ) cout << "RestOfMaybeLogicalAndExpOp" << endl;
   RestOfMaybeBitOrExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == AND ) {
     mCur++;
-    
+
     string first = result;
     MaybeBitOrExpOp( result );
 
@@ -4537,21 +4535,21 @@ void Parser::RestOfMaybeLogicalAndExpOp( string &result ) {
       if ( first == "false" && result == "true" ) result = "false";
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeLogicalAndExp" << endl;
 } // Parser::RestOfMaybeLogicalAndExpOp()
 
 void Parser::MaybeBitOrExpOp( string &result ) {
   if ( DEBUG ) cout << "MaybeBitOrExpOp" << endl;
   MaybeBitExOrExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == BITOR ) {
     // not in the test
     mCur++;
-    
+
     MaybeBitExOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitOrExp" << endl;
 } // Parser::MaybeBitOrExpOp()
 
@@ -4562,10 +4560,10 @@ void Parser::RestOfMaybeBitOrExpOp( string &result ) {
   while ( mScanner.mTokenList[mCur].tokenType == BITOR ) {
     // not in the test
     mCur++;
-    
+
     MaybeBitExOrExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitOrExp" << endl;
 } // Parser::RestOfMaybeBitOrExpOp()
 
@@ -4576,10 +4574,10 @@ void Parser::MaybeBitExOrExpOp( string &result ) {
   while ( mScanner.mTokenList[mCur].tokenType == BITXOR ) {
     // not in the test
     mCur++;
-    
+
     MaybeBitAndExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitExOrExp" << endl;
 } // Parser::MaybeBitExOrExpOp()
 
@@ -4590,24 +4588,24 @@ void Parser::RestOfMaybeBitExOrExpOp( string &result ) {
   while ( mScanner.mTokenList[mCur].tokenType == BITXOR ) {
     // not in the test
     mCur++;
-    
+
     MaybeBitAndExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitExOrExp" << endl;
 } // Parser::RestOfMaybeBitExOrExpOp()
 
 void Parser::MaybeBitAndExpOp( string &result ) {
   if ( DEBUG ) cout << "MaybeBitAndExpOp" << endl;
   MaybeEqualityExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == BITAND ) {
     // not in the test
     mCur++;
-    
+
     MaybeEqualityExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeBitAndExp" << endl;
 } // Parser::MaybeBitAndExpOp()
 
@@ -4618,10 +4616,10 @@ void Parser::RestOfMaybeBitAndExpOp( string &result ) {
   while ( mScanner.mTokenList[mCur].tokenType == BITAND ) {
     // not in the test
     mCur++;
-    
+
     MaybeEqualityExp();
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeBitAndExp" << endl;
 } // Parser::RestOfMaybeBitAndExpOp()
 
@@ -4633,7 +4631,7 @@ void Parser::MaybeEqualityExpOp( string &result ) {
     string first = result;
     string sign = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeRelationalExpOp( result );
 
     if ( mExecute ) {
@@ -4647,7 +4645,7 @@ void Parser::MaybeEqualityExpOp( string &result ) {
       } // end else
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeEqualityExp" << endl;
 } // Parser::MaybeEqualityExpOp()
 
@@ -4659,7 +4657,7 @@ void Parser::RestOfMaybeEqualityExpOp( string &result ) {
     string first = result;
     string sign = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeRelationalExpOp( result );
     if ( mExecute ) {
       if ( sign == "==" ) {
@@ -4671,10 +4669,10 @@ void Parser::RestOfMaybeEqualityExpOp( string &result ) {
         else result = "false";
       } // end else
     } // end if
-    
-    
+
+
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeEqualityExp" << endl;
 } // Parser::RestOfMaybeEqualityExpOp()
 
@@ -4687,7 +4685,7 @@ void Parser::MaybeRelationalExpOp( string &result ) {
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeShiftExpOp( result );
 
     float a, b;
@@ -4713,7 +4711,7 @@ void Parser::MaybeRelationalExpOp( string &result ) {
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeRelationalExp" << endl;
 } // Parser::MaybeRelationalExpOp()
 
@@ -4727,7 +4725,7 @@ void Parser::RestOfMaybeRelationalExpOp( string &result ) {
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeShiftExpOp( result );
 
     float a, b;
@@ -4753,21 +4751,21 @@ void Parser::RestOfMaybeRelationalExpOp( string &result ) {
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeRelationalExp" << endl;
 } // Parser::RestOfMaybeRelationalExpOp()
 
 void Parser::MaybeShiftExpOp( string &result ) {
   if ( DEBUG ) cout << "MaybeShiftExpOp" << endl;
   MaybeAdditiveExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == RS || mScanner.mTokenList[mCur].tokenType == LS ) {
     if ( mScanner.mTokenList[mCur].tokenType == LS && mIsCout && mIsInLP == 0 ) return;
     // assume that it is int type
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeAdditiveExpOp( result );
 
     if ( mExecute ) {
@@ -4779,20 +4777,20 @@ void Parser::MaybeShiftExpOp( string &result ) {
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeShiftExp" << endl;
 } // Parser::MaybeShiftExpOp()
 
 void Parser::RestOfMaybeShiftExpOp( string &result ) {
   if ( DEBUG ) cout << "RestOfMaybeShiftExpOp" << endl;
   RestOfMaybeAdditiveExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == RS || mScanner.mTokenList[mCur].tokenType == LS ) {
     if ( mScanner.mTokenList[mCur].tokenType == LS && mIsCout && mIsInLP == 0 ) return;
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeAdditiveExpOp( result );
 
     if ( mExecute ) {
@@ -4804,28 +4802,28 @@ void Parser::RestOfMaybeShiftExpOp( string &result ) {
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeShiftExp" << endl;
 } // Parser::RestOfMaybeShiftExpOp()
 
 void Parser::MaybeAdditiveExpOp( string &result ) {
   if ( DEBUG ) cout << "MaybeAdditiveExpOp" << endl;
   MaybeMultExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ) {
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-    
+
     MaybeMultExpOp( result );
 
     if ( mExecute ) {
       if ( op == "+" ) {
-        if ( first[0] == '"' || first[0] == '\'' || 
+        if ( first[0] == '"' || first[0] == '\'' ||
              result[0] == '"' || result[0] == '\'' ) {
           if ( first[0] == '"' || first[0] == '\'' ) first = first.substr( 1, first.size() - 3 );
           if ( result[0] == '"' || result[0] == '\'' ) result = result.substr( 1, result.size() - 3 );
-          
+
           result = first + result;
         } // end if
         else if ( ! FindDigitPoint( first ) && ! FindDigitPoint( result ) )
@@ -4834,7 +4832,7 @@ void Parser::MaybeAdditiveExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) + StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) + StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) + StringToFloat( result ) );
       } // end if
       else if ( op == "-" ) {
@@ -4844,12 +4842,12 @@ void Parser::MaybeAdditiveExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) - StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) - StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) - StringToFloat( result ) );
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of MaybeAdditiveExp" << endl;
 } // Parser::MaybeAdditiveExpOp()
 
@@ -4857,7 +4855,7 @@ void Parser::RestOfMaybeAdditiveExpOp( string &result ) {
   if ( DEBUG ) cout << "RestOfMaybeAdditiveExpOp" << endl;
 
   RestOfMaybeMultExpOp( result );
-  
+
   while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ) {
     string first = result;
     string op = mScanner.mTokenList[mCur].tokenString;
@@ -4866,7 +4864,7 @@ void Parser::RestOfMaybeAdditiveExpOp( string &result ) {
 
     if ( mExecute ) {
       if ( op == "+" ) {
-        if ( first[0] == '"' || first[0] == '\'' || 
+        if ( first[0] == '"' || first[0] == '\'' ||
              result[0] == '"' || result[0] == '\'' ) {
           if ( first[0] == '"' || first[0] == '\'' ) first = first.substr( 1, first.size() - 2 );
           if ( result[0] == '"' || result[0] == '\'' ) result = result.substr( 1, result.size() - 2 );
@@ -4879,9 +4877,9 @@ void Parser::RestOfMaybeAdditiveExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) + StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) + StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) + StringToFloat( result ) );
-        
+
       } // end if
       else if ( op == "-" ) {
         if ( ! FindDigitPoint( first ) && ! FindDigitPoint( result ) )
@@ -4890,12 +4888,12 @@ void Parser::RestOfMaybeAdditiveExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) - StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) - StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) - StringToFloat( result ) );
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeAdditiveExp" << endl;
 } // Parser::RestOfMaybeAdditiveExpOp()
 
@@ -4905,14 +4903,14 @@ void Parser::MaybeMultExpOp( string &result ) {
   UnaryExpOp( result );
 
   RestOfMaybeMultExpOp( result );
-  
+
   if ( DEBUG ) cout << "end of MaybeMultExp" << endl;
 } // Parser::MaybeMultExpOp()
 
 void Parser::RestOfMaybeMultExpOp( string &result ) {
   if ( DEBUG ) cout << "RestOfMaybeMultExpOp" << endl;
 
-  while ( mScanner.mTokenList[mCur].tokenType == MULT || mScanner.mTokenList[mCur].tokenType == DIV || 
+  while ( mScanner.mTokenList[mCur].tokenType == MULT || mScanner.mTokenList[mCur].tokenType == DIV ||
           mScanner.mTokenList[mCur].tokenType == REM ) {
 
     string op = mScanner.mTokenList[mCur].tokenString;
@@ -4927,7 +4925,7 @@ void Parser::RestOfMaybeMultExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) * StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) * StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) * StringToFloat( result ) );
       } // end if
       else if ( op == "/" ) {
@@ -4937,7 +4935,7 @@ void Parser::RestOfMaybeMultExpOp( string &result ) {
           result = FloatToString( StringToFloat( first ) / StringToInt( result ) );
         else if ( ! FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToInt( first ) / StringToFloat( result ) );
-        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) ) 
+        else if ( FindDigitPoint( first ) && FindDigitPoint( result ) )
           result = FloatToString( StringToFloat( first ) / StringToFloat( result ) );
       } // end if
       else if ( op == "%" ) {
@@ -4945,7 +4943,7 @@ void Parser::RestOfMaybeMultExpOp( string &result ) {
       } // end if
     } // end if
   } // end while
-  
+
   if ( DEBUG ) cout << "end of RestOfMaybeMultExp" << mCur << endl;
 } // Parser::RestOfMaybeMultExpOp()
 
@@ -4953,12 +4951,12 @@ void Parser::UnaryExpOp( string &result ) {
   if ( DEBUG ) cout << mScanner.mTokenList[mCur].tokenString << " UnaryExpOp" << endl;
   int pos = -1;
 
-  if ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB || 
+  if ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ||
        mScanner.mTokenList[mCur].tokenType == BITNOT ) {
     string op = mScanner.mTokenList[mCur].tokenString;
     mCur++;
-  
-    while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB || 
+
+    while ( mScanner.mTokenList[mCur].tokenType == ADD || mScanner.mTokenList[mCur].tokenType == SUB ||
             mScanner.mTokenList[mCur].tokenType == BITNOT ) {
       if ( mScanner.mTokenList[mCur].tokenString == "-" ) {
         if ( op == "+" ) op = "-";
@@ -4980,7 +4978,7 @@ void Parser::UnaryExpOp( string &result ) {
     } // end if
     else if ( mExecute && op == "-" ) result = op + result;
   } // end if
-  else if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == LP || 
+  else if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == LP ||
             mScanner.mTokenList[mCur].tokenType == CONSTANT ) {
     UnsignedUnaryExpOp( result );
   } // end if
@@ -5066,7 +5064,7 @@ void Parser::UnaryExpOp( string &result ) {
     string errorMsg = "unexpected token '" + mToken.tokenString + "'58";
     throw ( errorMsg );
   } // end else
-  
+
   // mCur++;
   if ( DEBUG ) cout << "end of UnaryExp" << endl;
 } // Parser::UnaryExpOp()
@@ -5108,7 +5106,7 @@ void Parser::SignedUnaryExpOp( string &result ) {
            mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
            mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
            mScanner.mTokenList[mCur].tokenType == CONSTANT || mScanner.mTokenList[mCur].tokenType == LP ) {
-      
+
         ExpressionOp( result );
         if ( mScanner.mTokenList[mCur].tokenType != MRP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'60";
@@ -5134,13 +5132,15 @@ void Parser::SignedUnaryExpOp( string &result ) {
          mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
          mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
          mScanner.mTokenList[mCur].tokenType == CONSTANT || mScanner.mTokenList[mCur].tokenType == LP ) {
-      
+
       ExpressionOp( result );
       if ( mScanner.mTokenList[mCur].tokenType != RP ) {
         string errorMsg = "unexpected token '" + mToken.tokenString + "'62";
         throw ( errorMsg );
       } // end if
       else mIsInLP--;
+
+      mCur++;
     } // end if
     else {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'63";
@@ -5158,7 +5158,7 @@ void Parser::SignedUnaryExpOp( string &result ) {
 
   if ( DEBUG ) cout << "end of SignedUnaryExp" << endl;
 } // Parser::SignedUnaryExpOp()
-  
+
 void Parser::UnsignedUnaryExpOp( string &result ) {
   if ( DEBUG ) cout << "UnsignedUnaryExpOp" << endl;
 
@@ -5173,7 +5173,7 @@ void Parser::UnsignedUnaryExpOp( string &result ) {
       if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
         string error = "EOF";
         throw ( error );
-      } // end if 
+      } // end if
 
       if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == PP ||
            mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
@@ -5197,7 +5197,7 @@ void Parser::UnsignedUnaryExpOp( string &result ) {
            mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
            mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
            mScanner.mTokenList[mCur].tokenType == CONSTANT || mScanner.mTokenList[mCur].tokenType == LP ) {
-      
+
         ExpressionOp( result );
         if ( mScanner.mTokenList[mCur].tokenType != MRP ) {
           string errorMsg = "unexpected token '" + mToken.tokenString + "'66";
@@ -5271,7 +5271,7 @@ void Parser::UnsignedUnaryExpOp( string &result ) {
          mScanner.mTokenList[mCur].tokenType == MM || mScanner.mTokenList[mCur].tokenType == ADD ||
          mScanner.mTokenList[mCur].tokenType == SUB || mScanner.mTokenList[mCur].tokenType == BITNOT ||
          mScanner.mTokenList[mCur].tokenType == CONSTANT || mScanner.mTokenList[mCur].tokenType == LP ) {
-      
+
       ExpressionOp( result );
       if ( mScanner.mTokenList[mCur].tokenType == RP ) {
         mCur++;
@@ -5301,10 +5301,10 @@ void Parser::UnsignedUnaryExpOp( string &result ) {
 
 bool Parser::IsDefOrStatementOp() {
   if ( DEBUG ) cout << "IsDefOrStatement" << endl;
-  return ( mScanner.mTokenList[mCur].tokenType == INT || 
-           mScanner.mTokenList[mCur].tokenType == CHAR || 
-           mScanner.mTokenList[mCur].tokenType == FLOAT || 
-           mScanner.mTokenList[mCur].tokenType == STRING || 
+  return ( mScanner.mTokenList[mCur].tokenType == INT ||
+           mScanner.mTokenList[mCur].tokenType == CHAR ||
+           mScanner.mTokenList[mCur].tokenType == FLOAT ||
+           mScanner.mTokenList[mCur].tokenType == STRING ||
            mScanner.mTokenList[mCur].tokenType == BOOL ||
            mScanner.mTokenList[mCur].tokenType == ID ||
            mScanner.mTokenList[mCur].tokenType == PP ||
@@ -5315,7 +5315,7 @@ bool Parser::IsDefOrStatementOp() {
            mScanner.mTokenList[mCur].tokenType == CONSTANT ||
            mScanner.mTokenList[mCur].tokenType == RETURN ||
            mScanner.mTokenList[mCur].tokenType == BLP ||
-           mScanner.mTokenList[mCur].tokenType == IF || 
+           mScanner.mTokenList[mCur].tokenType == IF ||
            mScanner.mTokenList[mCur].tokenType == WHILE ||
            mScanner.mTokenList[mCur].tokenType == DO ||
            mScanner.mTokenList[mCur].tokenType == SCLN ||
@@ -5327,19 +5327,19 @@ bool Parser::IsDefOrStatementOp() {
 int main() {
   int uTestNum = 0 ;
   char ch;
-  Parser parser; 
+  Parser parser;
   bool get = true;
   if ( ! DEBUG ) scanf( "%d%c", &uTestNum, &ch );
-  
+
   printf( "Our-C running ...\n" );
   printf( "> " );
-  
+
   parser.mScanner.Init();
   parser.mScanner.CurInit();
   parser.Init();
   while ( parser.IsUserInput() ) {
     ;
   } // while
-  
+
   printf( "Our-C exited ..." ) ;
 } // main()

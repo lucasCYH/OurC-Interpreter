@@ -2125,9 +2125,11 @@ void Parser::BasicExpression() {
 
     if ( mToken.tokenType == ID || mToken.tokenType == CONSTANT ||
          mToken.tokenType == LP ) {
+      bool getNext = false;
+      if ( mToken.tokenType == LP ) getNext = true;
       SignedUnaryExp();
 
-      if ( mToken.tokenType == RP || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
+      if ( ( mToken.tokenType == RP && getNext ) || mToken.tokenType == MRP ) mToken = mScanner.GetToken();
     } // end if
     else {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'39";
@@ -4028,8 +4030,12 @@ void Parser::BasicExpressionOp( string &result ) {
       } // end if
     } // end while
 
+    bool getNext = false;
     if ( mScanner.mTokenList[mCur].tokenType == ID || mScanner.mTokenList[mCur].tokenType == CONSTANT ||
          mScanner.mTokenList[mCur].tokenType == LP ) {
+      
+      if ( mScanner.mTokenList[mCur].tokenType == LP ) getNext = true;
+
       SignedUnaryExpOp( result );
       if ( mExecute ) {
         if ( result == "true" && sign == "!" ) result = "false";
@@ -4045,7 +4051,8 @@ void Parser::BasicExpressionOp( string &result ) {
       throw ( errorMsg );
     } // end else
 
-    if ( mScanner.mTokenList[mCur].tokenType == RP || mScanner.mTokenList[mCur].tokenType == MRP ) mCur++;
+    if ( ( mScanner.mTokenList[mCur].tokenType == RP && getNext ) ||
+         mScanner.mTokenList[mCur].tokenType == MRP ) mCur++;
 
     RomceAndRomloeOp( result );
   } // end if

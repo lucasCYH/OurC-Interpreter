@@ -4441,8 +4441,9 @@ void Parser::RomceAndRomloeOp( string &result ) {
 
   if ( mScanner.mTokenList[mCur].tokenType == QUE ) {
     string ans = result;
+    string queRes;
     bool doStatement = mExecute;
-    if ( doStatement && ( ans == "false" && ans != "0" ) ) mExecute = false;
+    if ( doStatement && ( ans == "false" || ans == "0" ) ) mExecute = false;
 
     mCur++;
     if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
@@ -4460,6 +4461,8 @@ void Parser::RomceAndRomloeOp( string &result ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'53";
       throw ( errorMsg );
     } // end else
+
+    queRes = result;
 
     if ( mScanner.mTokenList[mCur].tokenType == COLON ) {
       if ( ! mExecute && doStatement ) mExecute = true;
@@ -4487,6 +4490,15 @@ void Parser::RomceAndRomloeOp( string &result ) {
       string errorMsg = "unexpected token '" + mToken.tokenString + "'55";
       throw ( errorMsg );
     } // end else
+
+    if ( ans == "0" || ans == "false" ) ans = "false";
+    else ans = "true";
+
+    if ( doStatement && ans == "true" ) {
+      if ( mIsCout && ! mIsInLP ) result = "true";
+      else result = queRes;
+    } // end if
+    else if ( mIsCout && ans == "false" && doStatement && ! mIsInLP ) result = "false";
   } // end if
 
   if ( DEBUG ) cout << "end of RomceAndRomloe" << endl;

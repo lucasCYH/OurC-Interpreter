@@ -3192,7 +3192,7 @@ void Parser::RestOfDeclaratorsOp( string variableType, string variableName, bool
       throw ( error );
     } // end if
     else if ( mScanner.mTokenList[mCur].tokenType == CONSTANT ) {
-      string length = mToken.tokenString;
+      string length = mScanner.mTokenList[mCur].tokenString;
       mCur++;
       if ( mScanner.mTokenList[mCur].tokenType == END_OF_FILE ) {
         string error = "EOF";
@@ -3204,6 +3204,7 @@ void Parser::RestOfDeclaratorsOp( string variableType, string variableName, bool
       } // end if
       else if ( mScanner.mTokenList[mCur].tokenType == MRP ) {
         mCur++;
+
         if ( mExecute ) AddVariable( variableType, variableName, length );
       } // end if
     } // end if
